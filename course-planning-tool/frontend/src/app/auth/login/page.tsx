@@ -35,28 +35,28 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Call the real backend API for authentication
+      const response = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          username: formData.email,
+          password: formData.password,
+        })
+      });
       
-      // In production, you would call your backend API here:
-      // const response = await fetch('/api/v1/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      //   body: new URLSearchParams({
-      //     username: formData.email,
-      //     password: formData.password,
-      //   })
-      // });
-      // 
-      // if (!response.ok) {
-      //   throw new Error('Login failed');
-      // }
-      // 
-      // const result = await response.json();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Login failed');
+      }
       
-      // For demo purposes, simulate a successful login
-      const demoToken = 'demo_access_token_' + Date.now();
-      localStorage.setItem('access_token', demoToken);
+      const result = await response.json();
+      
+      // Store the real access token
+      if (result.access_token) {
+        localStorage.setItem('access_token', result.access_token);
+        localStorage.setItem('authToken', result.access_token); // For compatibility
+      }
       
       // Check for redirect path and go there, otherwise go to dashboard
       const redirectPath = localStorage.getItem('redirect_after_login');
@@ -65,7 +65,7 @@ export default function LoginPage() {
       router.push(redirectPath || '/dashboard');
       
     } catch (error) {
-      setError('Invalid email or password. Please try again.');
+      setError(error instanceof Error ? error.message : 'Invalid email or password. Please try again.');
       console.error('Login error:', error);
     } finally {
       setIsLoading(false);
