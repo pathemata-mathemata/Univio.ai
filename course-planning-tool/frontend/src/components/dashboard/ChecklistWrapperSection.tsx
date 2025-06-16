@@ -16,7 +16,6 @@ export const ChecklistWrapperSection = (): JSX.Element => {
       <Progress
         value={progressPercentage}
         className="w-full h-2 bg-[#dbe0e5]"
-        indicatorClassName="bg-[#111416]"
       />
 
       <div className="w-full">
