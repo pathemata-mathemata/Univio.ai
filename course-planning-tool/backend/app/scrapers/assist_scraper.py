@@ -80,10 +80,11 @@ def _scrape_assist_with_selenium(academic_year, institution, target_institution,
     
     # Set Chrome binary path - try common production paths
     chrome_paths = [
-        "/usr/bin/google-chrome",           # Common Linux path
-        "/usr/bin/google-chrome-stable",   # Alternative Linux path  
-        "/usr/bin/chromium-browser",       # Chromium fallback
-        "/opt/google/chrome/chrome",       # Another common path
+        "/usr/bin/chromium",                # Chromium binary (from our Dockerfile)
+        "/usr/bin/chromium-browser",       # Alternative Chromium path
+        "/usr/bin/google-chrome",           # Chrome fallback
+        "/usr/bin/google-chrome-stable",   # Alternative Chrome path  
+        "/opt/google/chrome/chrome",       # Another common Chrome path
     ]
     
     chrome_binary = os.getenv("CHROME_BINARY_PATH")
@@ -91,17 +92,17 @@ def _scrape_assist_with_selenium(academic_year, institution, target_institution,
         chrome_options.binary_location = chrome_binary
         print(f"🔧 Using specified Chrome binary: {chrome_binary}")
     else:
-        # Auto-detect Chrome binary
+        # Auto-detect Chrome/Chromium binary
         for path in chrome_paths:
             if os.path.exists(path):
                 chrome_options.binary_location = path
-                print(f"🔧 Auto-detected Chrome binary: {path}")
+                print(f"🔧 Auto-detected Chrome/Chromium binary: {path}")
                 break
     
     # Set ChromeDriver path - try common paths
     chromedriver_paths = [
-        "/usr/local/bin/chromedriver",      # From Dockerfile
-        "/usr/bin/chromedriver",            # Alternative path
+        "/usr/bin/chromedriver",            # ChromeDriver from chromium-driver package
+        "/usr/local/bin/chromedriver",      # Alternative path
         "/opt/chromedriver/chromedriver",   # Another common path
     ]
     
