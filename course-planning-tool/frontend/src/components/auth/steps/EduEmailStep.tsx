@@ -66,22 +66,17 @@ export function EduEmailStep({ data, updateData, onNext, isLoading, setIsLoading
       return true;
     } catch (error) {
       console.error('❌ Email validation error:', error);
-      // Fallback: if API fails, check if it's a .edu email
-      if (email.toLowerCase().includes('.edu')) {
-        console.log('🔄 API failed, but .edu detected - allowing');
-        const fallbackResult = {
-          isValid: true,
-          isEduEmail: true,
-          isStudentEmail: true,
-          isDisposable: false,
-          isFreeEmail: false,
-          deliverability: 'UNKNOWN',
-          qualityScore: 0.8
-        };
-        setValidationResult(fallbackResult);
-        return true;
+      
+      // Show specific error message from validation service
+      const errorMessage = error instanceof Error ? error.message : 'Email validation service unavailable';
+      setEmailError(errorMessage);
+      
+      // If API is unavailable and it's clearly a .edu email, allow manual override
+      if (email.toLowerCase().endsWith('.edu') && errorMessage.includes('unavailable')) {
+        setEmailError(`${errorMessage} - However, this appears to be a .edu email. You may proceed, but verification is recommended when the service is available.`);
+        return true; // Allow proceeding with .edu emails when service is down
       }
-      setEmailError('Unable to validate email at this time. Please try again.');
+      
       return false;
     } finally {
       setIsValidating(false);

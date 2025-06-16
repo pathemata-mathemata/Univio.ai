@@ -132,26 +132,14 @@ export default function ProgressPage() {
         )}
 
         {/* Fallback Notice */}
-        {analysisData?.is_fallback && (
-          <Card className="mb-6 border-yellow-200 bg-yellow-50">
-            <CardHeader>
-              <h2 className="text-lg font-semibold text-yellow-800">⚠️ Using Sample Data</h2>
-              <p className="text-sm text-yellow-700">
-                ASSIST.org scraping is currently unavailable. Showing sample transfer requirements for demonstration purposes.
-                For accurate requirements, please consult ASSIST.org directly or contact your academic counselor.
-              </p>
-            </CardHeader>
-          </Card>
-        )}
+
 
         {/* Main Transfer Requirements - What you need to take at current institution */}
         <Card className="mb-6">
           <CardHeader>
             <h2 className="text-xl font-semibold">Transfer Requirements at {analysisData.target_institution}</h2>
             <p className="text-sm text-gray-600">Courses you need to complete at {analysisData.source_institution}</p>
-            {analysisData?.is_fallback && (
-              <p className="text-xs text-yellow-600 mt-1">* Sample data - actual requirements may vary</p>
-            )}
+
           </CardHeader>
           <CardContent>
             {Object.keys(analysisData.source_requirements).length > 0 ? (

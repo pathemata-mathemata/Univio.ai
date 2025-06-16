@@ -16,7 +16,7 @@ from app.core.config import settings
 
 def scrape_assist_data(academic_year, institution, target_institution, major_filter):
     """
-    Scrape ASSIST.org for transfer requirements
+    Scrape ASSIST.org for transfer requirements - REAL DATA ONLY
     
     Args:
         academic_year (str): Academic year (e.g., "2024-2025")
@@ -25,7 +25,10 @@ def scrape_assist_data(academic_year, institution, target_institution, major_fil
         major_filter (str): Major to filter for (e.g., "Applied Math")
     
     Returns:
-        dict: Structured data containing transfer requirements
+        dict: Structured data containing transfer requirements OR raises exception
+    
+    Raises:
+        Exception: When ASSIST.org scraping fails - NO FALLBACK DATA
     """
     
     print(f"🚀 Starting ASSIST.org scraping...")
@@ -40,20 +43,19 @@ def scrape_assist_data(academic_year, institution, target_institution, major_fil
             print(f"✅ ASSIST.org scraping successful!")
             return result
         else:
-            print(f"❌ ASSIST.org scraping failed: {result.get('error', 'Unknown error')}")
-            print(f"🔄 Returning mock data as fallback...")
-            return _get_fallback_data(academic_year, institution, target_institution, major_filter)
+            error_msg = result.get('error', 'Unknown error')
+            print(f"❌ ASSIST.org scraping failed: {error_msg}")
+            raise Exception(f"ASSIST.org scraping failed: {error_msg}")
     except Exception as e:
         print(f"❌ ASSIST.org scraping crashed: {str(e)}")
-        print(f"🔄 Returning mock data as fallback...")
-        return _get_fallback_data(academic_year, institution, target_institution, major_filter)
+        raise Exception(f"ASSIST.org scraping crashed: {str(e)}")
 
 def _scrape_assist_with_selenium(academic_year, institution, target_institution, major_filter):
     
-    # Set up Chrome options for production and local environments
+    # Set up Chrome options for maximum stability in production environments
     chrome_options = Options()
     
-    # Basic options for stability - ESSENTIAL for production environments
+    # Essential options for Docker/containerized environments
     chrome_options.add_argument("--no-sandbox")                    # Critical for Docker/containers
     chrome_options.add_argument("--disable-dev-shm-usage")         # Critical for limited memory
     chrome_options.add_argument("--disable-gpu")                   # Disable GPU for headless
@@ -69,15 +71,36 @@ def _scrape_assist_with_selenium(academic_year, institution, target_institution,
     chrome_options.add_argument("--disable-backgrounding-occluded-windows")
     chrome_options.add_argument("--disable-renderer-backgrounding")
     chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("--single-process")              # Use single process for stability
     chrome_options.add_argument("--no-zygote")                   # Disable zygote process
     chrome_options.add_argument("--disable-background-networking")
     chrome_options.add_argument("--disable-default-apps")
     chrome_options.add_argument("--disable-sync")
     chrome_options.add_argument("--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
     
+    # Enhanced stability options for production
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_argument("--disable-web-security")
+    chrome_options.add_argument("--allow-running-insecure-content")
+    chrome_options.add_argument("--disable-logging")
+    chrome_options.add_argument("--disable-dev-tools")
+    chrome_options.add_argument("--ignore-certificate-errors")
+    chrome_options.add_argument("--ignore-ssl-errors")
+    chrome_options.add_argument("--ignore-certificate-errors-spki-list")
+    chrome_options.add_argument("--disable-site-isolation-trials")
+    chrome_options.add_argument("--disable-features=VizDisplayCompositor,VizServiceDisplay")
+    chrome_options.add_argument("--memory-pressure-off")
+    chrome_options.add_argument("--max_old_space_size=4096")
+    
     # ALWAYS run headless in production (Render doesn't have display)
     chrome_options.add_argument("--headless=new")  # Use new headless mode
+    
+    # Advanced session persistence options
+    chrome_options.add_argument("--aggressive-cache-discard")
+    chrome_options.add_argument("--disable-hang-monitor")
+    chrome_options.add_argument("--disable-prompt-on-repost")
+    chrome_options.add_argument("--disable-client-side-phishing-detection")
+    chrome_options.add_argument("--disable-component-update")
+    chrome_options.add_argument("--disable-domain-reliability")
     
     # Set Chrome binary path - try common production paths
     chrome_paths = [
@@ -125,45 +148,87 @@ def _scrape_assist_with_selenium(academic_year, institution, target_institution,
         if not chromedriver_path:
             chromedriver_path = settings.CHROME_DRIVER_PATH  # Use config default
     
-    print(f"🚀 Initializing Chrome WebDriver...")
+    print(f"🚀 Initializing Chrome WebDriver with enhanced stability...")
     print(f"   ChromeDriver path: {chromedriver_path}")
     print(f"   Chrome binary: {chrome_options.binary_location}")
     
-    try:
-        # Try to create service with specified path
-        if chromedriver_path and os.path.exists(chromedriver_path):
-            print(f"✅ Found ChromeDriver at: {chromedriver_path}")
-            service = Service(chromedriver_path)
-            driver = webdriver.Chrome(service=service, options=chrome_options)
-            print(f"✅ Chrome WebDriver initialized successfully!")
-        else:
-            print(f"❌ ChromeDriver not found at: {chromedriver_path}")
-            # Fallback: let webdriver-manager handle it (for local development)
-            try:
-                print(f"🔄 Trying webdriver-manager fallback...")
-                from webdriver_manager.chrome import ChromeDriverManager
-                service = Service(ChromeDriverManager().install())
-                driver = webdriver.Chrome(service=service, options=chrome_options)
-                print(f"✅ Chrome WebDriver initialized with webdriver-manager!")
-            except ImportError:
-                print(f"❌ webdriver-manager not available")
-                # Last resort: try without service specification
-                print(f"🔄 Trying without service specification...")
-                driver = webdriver.Chrome(options=chrome_options)
-                print(f"✅ Chrome WebDriver initialized without service!")
-    except Exception as e:
-        print(f"❌ Failed to initialize ChromeDriver: {e}")
-        print(f"🔄 Last resort: trying basic Chrome initialization...")
-        try:
-            driver = webdriver.Chrome(options=chrome_options)
-            print(f"✅ Chrome WebDriver initialized (basic)!")
-        except Exception as e2:
-            print(f"❌ All Chrome initialization attempts failed:")
-            print(f"   Original error: {e}")
-            print(f"   Fallback error: {e2}")
-            raise Exception(f"Could not initialize Chrome WebDriver. Check if Chrome and ChromeDriver are installed. Original: {e}, Fallback: {e2}")
+    driver = None
+    max_retries = 3
+    retry_count = 0
     
-    driver.get("https://assist.org/")
+    while retry_count < max_retries:
+        try:
+            retry_count += 1
+            print(f"🔄 Chrome initialization attempt {retry_count}/{max_retries}")
+            
+            # Try to create service with specified path
+            if chromedriver_path and os.path.exists(chromedriver_path):
+                print(f"✅ Found ChromeDriver at: {chromedriver_path}")
+                service = Service(chromedriver_path)
+                driver = webdriver.Chrome(service=service, options=chrome_options)
+                print(f"✅ Chrome WebDriver initialized successfully!")
+                break
+            else:
+                print(f"❌ ChromeDriver not found at: {chromedriver_path}")
+                # Fallback: let webdriver-manager handle it (for local development)
+                try:
+                    print(f"🔄 Trying webdriver-manager fallback...")
+                    from webdriver_manager.chrome import ChromeDriverManager
+                    service = Service(ChromeDriverManager().install())
+                    driver = webdriver.Chrome(service=service, options=chrome_options)
+                    print(f"✅ Chrome WebDriver initialized with webdriver-manager!")
+                    break
+                except ImportError:
+                    print(f"❌ webdriver-manager not available")
+                    # Last resort: try without service specification
+                    print(f"🔄 Trying without service specification...")
+                    driver = webdriver.Chrome(options=chrome_options)
+                    print(f"✅ Chrome WebDriver initialized without service!")
+                    break
+                    
+        except Exception as e:
+            print(f"❌ Chrome initialization attempt {retry_count} failed: {e}")
+            if retry_count >= max_retries:
+                print(f"❌ All Chrome initialization attempts failed after {max_retries} retries")
+                raise Exception(f"Could not initialize Chrome WebDriver after {max_retries} attempts. Check if Chrome and ChromeDriver are properly installed and configured. Last error: {e}")
+            
+            # Wait before retry
+            import time
+            time.sleep(2)
+            
+    if not driver:
+        raise Exception("Failed to initialize Chrome WebDriver - driver is None")
+    
+    # Set aggressive timeouts for stability
+    driver.set_page_load_timeout(30)  # 30 second page load timeout
+    driver.implicitly_wait(10)        # 10 second implicit wait
+    
+    print(f"🌐 Navigating to ASSIST.org...")
+    
+    # Retry mechanism for page loading
+    max_page_retries = 2
+    page_retry = 0
+    
+    while page_retry < max_page_retries:
+        try:
+            page_retry += 1
+            print(f"🔄 Page load attempt {page_retry}/{max_page_retries}")
+            driver.get("https://assist.org/")
+            
+            # Verify page loaded
+            wait = WebDriverWait(driver, 20)
+            wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+            print(f"✅ ASSIST.org page loaded successfully")
+            break
+            
+        except Exception as e:
+            print(f"❌ Page load attempt {page_retry} failed: {e}")
+            if page_retry >= max_page_retries:
+                driver.quit()
+                raise Exception(f"Failed to load ASSIST.org after {max_page_retries} attempts: {e}")
+            
+            # Wait before retry
+            time.sleep(3)
 
     wait = WebDriverWait(driver, 20)
 
@@ -612,98 +677,6 @@ def _scrape_assist_with_selenium(academic_year, institution, target_institution,
             driver.quit()
         except:
             pass  # Ignore errors when closing driver
-
-def _get_fallback_data(academic_year, institution, target_institution, major_filter):
-    """
-    Provide fallback mock data when ASSIST.org scraping fails
-    This ensures the system continues to work even when scraping fails
-    """
-    print(f"📚 Generating fallback data for {major_filter} transfer requirements...")
-    
-    # Generate some common transfer requirements based on the major
-    major_lower = major_filter.lower()
-    
-    # Common course patterns for different majors
-    if 'computer science' in major_lower or 'cs' in major_lower:
-        source_requirements = {
-            "Programming Fundamentals": [
-                [{"code": "CS 1A", "title": "Object-Oriented Programming", "units": "4.5"}],
-                [{"code": "CS 1B", "title": "Advanced Programming", "units": "4.5"}]
-            ],
-            "Mathematics for CS": [
-                [{"code": "MATH 1A", "title": "Calculus I", "units": "5"}],
-                [{"code": "MATH 1B", "title": "Calculus II", "units": "5"}],
-                [{"code": "MATH 1C", "title": "Calculus III", "units": "5"}]
-            ],
-            "Physics Requirements": [
-                [{"code": "PHYS 4A", "title": "Physics for Engineers I", "units": "5"}],
-                [{"code": "PHYS 4B", "title": "Physics for Engineers II", "units": "5"}]
-            ]
-        }
-    elif 'math' in major_lower:
-        source_requirements = {
-            "Calculus Sequence": [
-                [{"code": "MATH 1A", "title": "Calculus I", "units": "5"}],
-                [{"code": "MATH 1B", "title": "Calculus II", "units": "5"}],
-                [{"code": "MATH 1C", "title": "Calculus III", "units": "5"}],
-                [{"code": "MATH 1D", "title": "Calculus IV", "units": "5"}]
-            ],
-            "Linear Algebra": [
-                [{"code": "MATH 2A", "title": "Linear Algebra", "units": "4"}]
-            ],
-            "Differential Equations": [
-                [{"code": "MATH 2B", "title": "Differential Equations", "units": "4"}]
-            ]
-        }
-    elif 'business' in major_lower:
-        source_requirements = {
-            "Business Core": [
-                [{"code": "BUS 1A", "title": "Financial Accounting", "units": "4"}],
-                [{"code": "BUS 1B", "title": "Managerial Accounting", "units": "4"}],
-                [{"code": "BUS 10", "title": "Introduction to Business", "units": "4"}]
-            ],
-            "Economics": [
-                [{"code": "ECON 1", "title": "Macroeconomics", "units": "4"}],
-                [{"code": "ECON 2", "title": "Microeconomics", "units": "4"}]
-            ],
-            "Mathematics": [
-                [{"code": "MATH 10", "title": "Business Mathematics", "units": "4"}],
-                [{"code": "MATH 12", "title": "Statistics", "units": "4"}]
-            ]
-        }
-    else:
-        # Generic requirements for other majors
-        source_requirements = {
-            "General Education": [
-                [{"code": "ENGL 1A", "title": "Composition and Reading", "units": "4"}],
-                [{"code": "ENGL 1B", "title": "Critical Thinking and Writing", "units": "4"}]
-            ],
-            "Mathematics": [
-                [{"code": "MATH 12", "title": "Statistics", "units": "4"}]
-            ],
-            "Major Prerequisites": [
-                [{"code": "MAJOR 1", "title": f"Introduction to {major_filter}", "units": "3"}],
-                [{"code": "MAJOR 2", "title": f"Fundamentals of {major_filter}", "units": "3"}]
-            ]
-        }
-    
-    result = {
-        'academic_year': academic_year,
-        'source_institution': institution,
-        'target_institution': target_institution,
-        'major': major_filter,
-        'target_requirements': [],
-        'source_requirements': source_requirements,
-        'is_fallback': True,
-        'fallback_reason': 'ASSIST.org scraping unavailable'
-    }
-    
-    return {
-        "success": True,
-        "data": result,
-        "error": None,
-        "is_fallback": True
-    }
 
 def print_formatted_output(sections, source_requirements):
     """Print the De Anza College course requirements (right side data)"""

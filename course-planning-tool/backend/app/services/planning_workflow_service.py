@@ -66,12 +66,11 @@ class PlanningWorkflowService:
             
         except Exception as e:
             print(f"❌ Workflow error: {str(e)}")
-            # Fallback to AI-only planning without scraped data
-            print("🔄 Falling back to AI planning without scraped data...")
-            return await self._fallback_ai_planning(user_profile, completed_courses)
+            # Re-raise the exception - NO FALLBACK DATA
+            raise Exception(f"Planning workflow failed: {str(e)}")
     
     async def _scrape_transfer_requirements(self, user_profile: Dict[str, Any]) -> Dict[str, Any]:
-        """Scrape ASSIST.org for transfer requirements"""
+        """Scrape ASSIST.org for transfer requirements - REAL DATA ONLY"""
         
         # Extract scraping parameters from user profile - NO FALLBACKS
         current_institution = user_profile.get('current_institution')
@@ -88,23 +87,17 @@ class PlanningWorkflowService:
             if not academic_year: missing.append("academic_year")
             raise Exception(f"Missing required user profile data: {', '.join(missing)}")
         
-        try:
-            # Call the ASSIST scraper
-            assist_data = scrape_assist_data(
-                academic_year=academic_year,
-                institution=current_institution,
-                target_institution=target_institution, 
-                major_filter=major
-            )
-            
-            # Parse and structure the scraped data
-            structured_data = self._structure_assist_data(assist_data)
-            return structured_data
-            
-        except Exception as e:
-            print(f"⚠️ ASSIST scraping failed: {str(e)}")
-            # Return mock transfer requirements as fallback
-            return self._get_mock_transfer_requirements(user_profile)
+        # Call the ASSIST scraper - will raise exception if fails
+        assist_data = scrape_assist_data(
+            academic_year=academic_year,
+            institution=current_institution,
+            target_institution=target_institution, 
+            major_filter=major
+        )
+        
+        # Parse and structure the scraped data
+        structured_data = self._structure_assist_data(assist_data)
+        return structured_data
     
     def _structure_assist_data(self, raw_assist_data: Dict[str, Any]) -> Dict[str, Any]:
         """Structure raw ASSIST data into standardized format"""
@@ -206,51 +199,7 @@ class PlanningWorkflowService:
             }
         }
     
-    async def _fallback_ai_planning(
-        self, 
-        user_profile: Dict[str, Any], 
-        completed_courses: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
-        """Fallback AI planning when scraping fails"""
-        
-        # Create basic context without scraped data
-        context = {
-            "user_profile": user_profile,
-            "completed_courses": completed_courses, 
-            "transfer_requirements": self._get_mock_transfer_requirements(user_profile),
-            "assist_data": {"articulation_agreements": []}
-        }
-        
-        schedule = await self.ai_service.generate_quarter_schedule(context)
-        schedule['workflow_info'] = {
-            'workflow_status': 'fallback',
-            'note': 'Generated without ASSIST.org data due to scraping error'
-        }
-        
-        return schedule
-    
-    def _get_mock_transfer_requirements(self, user_profile: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate mock transfer requirements when scraping fails"""
-        
-        major = user_profile.get('major', '').lower()
-        
-        if 'computer science' in major or 'cs' in major:
-            return {
-                "remaining_courses": [
-                    {"course_code": "PHYS 4A", "course_name": "Mechanics", "units": 4, "category": "Major Prerequisites"},
-                    {"course_code": "CS 2A", "course_name": "Object-Oriented Programming", "units": 4, "category": "Major Prerequisites"},
-                    {"course_code": "ENGL 1A", "course_name": "English Composition", "units": 4, "category": "General Education"},
-                    {"course_code": "PHIL 9", "course_name": "Critical Thinking", "units": 3, "category": "General Education"}
-                ]
-            }
-        else:
-            return {
-                "remaining_courses": [
-                    {"course_code": "ENGL 1A", "course_name": "English Composition", "units": 4, "category": "General Education"},
-                    {"course_code": "MATH 1D", "course_name": "Linear Algebra", "units": 4, "category": "Major Prerequisites"},
-                    {"course_code": "HIST 17A", "course_name": "US History", "units": 3, "category": "General Education"}
-                ]
-            }
+
     
     def _parse_units(self, units_str: str) -> int:
         """Parse units from string like '4.00 units' to integer"""

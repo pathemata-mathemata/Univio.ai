@@ -459,33 +459,10 @@ async def analyze_transfer_requirements_public(
             error_msg = scraper_result.get("error", "Unknown scraping error")
             print(f"❌ Scraper failed: {error_msg}")
             
-            # Return a response with mock data for now, indicating scraper failure
-            return ApiResponse(
-                success=True,
-                data={
-                    "academic_year": academic_year,
-                    "source_institution": current_institution,
-                    "target_institution": target_institution,
-                    "major": major,
-                    "target_requirements": [],
-                    "source_requirements": {
-                        "scraper_error": {
-                            "error": error_msg,
-                            "message": "ASSIST.org scraper encountered an issue. This may be due to website changes or connectivity issues.",
-                            "courses": []
-                        }
-                    },
-                    "user_timeline": {
-                        "target_transfer_quarter": request.get("target_transfer_quarter"),
-                        "current_planning_quarter": request.get("current_planning_quarter")
-                    },
-                    "analysis_metadata": {
-                        "quarters_until_transfer": 2,
-                        "analysis_date": None,  # Use real date if needed
-                        "requirements_source": "ASSIST.org (failed - using fallback)"
-                    }
-                },
-                message=f"Transfer analysis completed with scraper issues: {error_msg}"
+            # Return error response - NO FALLBACK DATA
+            raise HTTPException(
+                status_code=503,
+                detail=f"Transfer analysis unavailable: ASSIST.org scraping failed - {error_msg}. Please try again later or check if the institution/major combination exists on ASSIST.org."
             )
         
         # Process the scraped data
@@ -577,29 +554,10 @@ async def analyze_transfer_requirements_public(
             
         except Exception as ai_error:
             print(f"❌ AI scheduling failed: {ai_error}")
-            # Return scraped data without AI schedule as fallback
-            return ApiResponse(
-                success=True,
-                data={
-                    "academic_year": academic_year,
-                    "source_institution": current_institution,
-                    "target_institution": target_institution,
-                    "major": major,
-                    "target_requirements": requirements_data.get("target_requirements", []),
-                    "source_requirements": requirements_data.get("source_requirements", {}),
-                    "ai_schedule": None,
-                    "ai_error": str(ai_error),
-                    "user_timeline": {
-                        "target_transfer_quarter": request.get("target_transfer_quarter"),
-                        "current_planning_quarter": request.get("current_planning_quarter")
-                    },
-                    "analysis_metadata": {
-                        "quarters_until_transfer": 2,
-                        "analysis_date": None,  # Use real date if needed
-                        "requirements_source": "ASSIST.org (AI scheduling failed)"
-                    }
-                },
-                message=f"Transfer requirements analyzed successfully, but AI scheduling failed: {ai_error}"
+            # Fail with proper error - NO FALLBACK DATA
+            raise HTTPException(
+                status_code=503,
+                detail=f"AI schedule generation failed: {str(ai_error)}. ASSIST.org data was retrieved but schedule generation is unavailable."
             )
         
     except Exception as e:
