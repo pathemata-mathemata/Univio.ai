@@ -4,7 +4,20 @@ const path = require('path')
 const nextConfig = {
   output: 'standalone',
   images: {
-    domains: ['localhost', 'univio-backend.onrender.com'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'univio-backend.onrender.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
