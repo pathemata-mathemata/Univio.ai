@@ -3,11 +3,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 import time
 import re
 from bs4 import BeautifulSoup
 import argparse
 import sys
+import os
 from selenium.common.exceptions import TimeoutException
 
 def scrape_assist_data(academic_year, institution, target_institution, major_filter):
@@ -24,8 +27,52 @@ def scrape_assist_data(academic_year, institution, target_institution, major_fil
         dict: Structured data containing transfer requirements
     """
     
-    # Set up the driver
-    driver = webdriver.Chrome()
+    # Set up Chrome options for production and local environments
+    chrome_options = Options()
+    
+    # Basic options for stability
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument("--disable-plugins")
+    chrome_options.add_argument("--disable-images")
+    chrome_options.add_argument("--disable-software-rasterizer")
+    chrome_options.add_argument("--disable-background-timer-throttling")
+    chrome_options.add_argument("--disable-backgrounding-occluded-windows")
+    chrome_options.add_argument("--disable-renderer-backgrounding")
+    chrome_options.add_argument("--window-size=1920,1080")
+    
+    # Enable headless mode for production or if specified
+    if os.getenv("HEADLESS_BROWSER", "true").lower() == "true" or os.getenv("ENVIRONMENT") == "production":
+        chrome_options.add_argument("--headless")
+    
+    # Set Chrome binary path if specified (for production)
+    chrome_binary = os.getenv("CHROME_BINARY_PATH")
+    if chrome_binary:
+        chrome_options.binary_location = chrome_binary
+    
+    # Set ChromeDriver path if specified
+    chromedriver_path = os.getenv("CHROME_DRIVER_PATH", "/usr/local/bin/chromedriver")
+    
+    try:
+        # Try to create service with specified path
+        if os.path.exists(chromedriver_path):
+            service = Service(chromedriver_path)
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+        else:
+            # Fallback: let webdriver-manager handle it
+            from webdriver_manager.chrome import ChromeDriverManager
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+    except Exception as e:
+        print(f"Failed to initialize ChromeDriver: {e}")
+        # Last resort: try without service specification
+        try:
+            driver = webdriver.Chrome(options=chrome_options)
+        except Exception as e2:
+            raise Exception(f"Could not initialize Chrome WebDriver. Original error: {e}, Fallback error: {e2}")
+    
     driver.get("https://assist.org/")
 
     wait = WebDriverWait(driver, 20)
