@@ -41,12 +41,21 @@ class Settings(BaseSettings):
     
     def get_database_url(self) -> str:
         """
-        Get database URL, prioritizing local SQLite for now since Supabase direct connection has issues
+        Get database URL - Use Supabase PostgreSQL for production, SQLite for local dev
         """
-        # For now, use local SQLite database for the backend user authentication
-        # Profile data will be fetched via Supabase REST API
-        print(f"🔗 Using local database for authentication: {self.DATABASE_URL}")
-        return self.DATABASE_URL
+        # Check if we have Supabase credentials
+        if self.SUPABASE_URL and self.POSTGRES_USER and self.POSTGRES_PASSWORD:
+            # Extract database details from Supabase URL
+            supabase_host = self.SUPABASE_URL.replace('https://', '').replace('http://', '')
+            # Construct PostgreSQL connection string for Supabase
+            postgres_url = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@aws-0-us-east-1.pooler.supabase.com:6543/{self.POSTGRES_DB or 'postgres'}"
+            print(f"🔗 Using Supabase PostgreSQL: {postgres_url.split(':')[0]}://{postgres_url.split('@')[0].split(':')[-1]}@****")
+            return postgres_url
+        else:
+            # Fallback to SQLite for local development
+            sqlite_url = "sqlite:///./course_planning.db"
+            print(f"🔗 Using SQLite database (local dev): {sqlite_url}")
+            return sqlite_url
     
     class Config:
         env_file = ".env"
