@@ -1,3 +1,7 @@
+/*
+ * Transfer Analysis Progress Page
+ * Fixed: Added is_fallback property to interface for fallback data handling
+ */
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -258,8 +262,6 @@ export default function ProgressPage() {
             </CardContent>
           </Card>
         )}
-
-
 
         {/* Actions */}
         <div className="flex gap-4">
