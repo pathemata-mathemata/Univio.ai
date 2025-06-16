@@ -47,7 +47,7 @@ export async function GET(request: Request) {
     }
 
     // Group courses by institution
-    const coursesByInstitution = courses?.reduce((acc, course) => {
+    const coursesByInstitution = courses?.reduce((acc: Record<string, any>, course) => {
       const institutionName = course.institution_name || 'Unknown'
       
       if (!acc[institutionName]) {
@@ -85,7 +85,7 @@ export async function GET(request: Request) {
       totalCourses: courses?.length || 0,
       totalInstitutions: Object.keys(coursesByInstitution).length,
       transferableCourses: courses?.filter(c => c.transferable).length || 0,
-      coursesByType: courses?.reduce((acc, course) => {
+      coursesByType: courses?.reduce((acc: Record<string, number>, course) => {
         const institutionData = Array.isArray(course.institutions) 
           ? course.institutions[0] 
           : course.institutions;
@@ -93,7 +93,7 @@ export async function GET(request: Request) {
         acc[type] = (acc[type] || 0) + 1
         return acc
       }, {} as Record<string, number>) || {},
-      coursesBySubject: courses?.reduce((acc, course) => {
+      coursesBySubject: courses?.reduce((acc: Record<string, number>, course) => {
         const subject = course.subject_area || 'unknown'
         acc[subject] = (acc[subject] || 0) + 1
         return acc
