@@ -131,7 +131,8 @@ export default function CoursesPage(): JSX.Element {
     } catch (error) {
       console.error('Error:', error);
       setIsLoading(false);
-      alert(`Error analyzing transfer requirements: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      alert(`Error analyzing transfer requirements: ${errorMessage}`);
     }
   };
 
