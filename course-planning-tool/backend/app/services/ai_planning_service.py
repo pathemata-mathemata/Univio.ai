@@ -276,8 +276,3 @@ Please respond with ONLY the JSON object, no additional explanation or text.
         
         response = await self._call_perplexity_api(prompt)
         return response
-    
-
-
-    
- 
