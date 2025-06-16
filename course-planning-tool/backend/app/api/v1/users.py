@@ -1,18 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import text
-from typing import Optional
-import uuid
-
 from app.core.database import get_db
 from app.models.user import User
-from app.models.student_profile import StudentProfile, Quarter
 from app.services.auth_service import AuthService
-from app.schemas.api_response import ApiResponse
-from app.schemas.user import UserResponse
-from app.schemas.student_profile import StudentProfileResponse, StudentProfileUpdate
+from app.schemas.common import ApiResponse
+from typing import Dict, Any
+import uuid
+import httpx
+import os
 
 router = APIRouter()
+
+# Supabase configuration
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 
 @router.get("/")
 async def get_users():
@@ -23,35 +24,30 @@ async def get_user_profile(
     current_user: User = Depends(AuthService.get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get comprehensive user profile including academic information from Supabase"""
+    """Get comprehensive user profile including academic information from Supabase via REST API"""
     try:
-        # Query the academic_profiles table directly from Supabase
-        # Since we're using Supabase, query the actual table structure
-        academic_profile_query = text("""
-            SELECT 
-                id,
-                user_id,
-                current_institution_name,
-                current_major_name,
-                current_gpa,
-                current_quarter,
-                current_year,
-                target_institution_name,
-                target_major_name,
-                expected_transfer_year,
-                expected_transfer_quarter,
-                max_units_per_quarter,
-                preferred_study_intensity,
-                created_at,
-                updated_at
-            FROM academic_profiles 
-            WHERE user_id = :user_id
-            LIMIT 1
-        """)
+        if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+            raise Exception("Supabase configuration not found")
         
-        # Execute the query
-        result = db.execute(academic_profile_query, {"user_id": str(current_user.id)})
-        academic_profile_row = result.fetchone()
+        # Query the academic_profiles table via Supabase REST API
+        headers = {
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        # Make request to Supabase REST API
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{SUPABASE_URL}/rest/v1/academic_profiles?user_id=eq.{current_user.id}&select=*",
+                headers=headers
+            )
+            
+            if response.status_code != 200:
+                print(f"❌ Supabase API error: {response.status_code} - {response.text}")
+                academic_profiles = []
+            else:
+                academic_profiles = response.json()
         
         # Build response data
         profile_data = {
@@ -69,22 +65,25 @@ async def get_user_profile(
         }
         
         # Add academic profile data if found
-        if academic_profile_row:
+        if academic_profiles and len(academic_profiles) > 0:
+            profile = academic_profiles[0]  # Get first profile
             profile_data["academic_profile"] = {
-                "id": academic_profile_row.id,
-                "current_institution": academic_profile_row.current_institution_name,
-                "current_major": academic_profile_row.current_major_name,
-                "current_gpa": academic_profile_row.current_gpa,
-                "current_quarter": academic_profile_row.current_quarter,
-                "current_year": academic_profile_row.current_year,
-                "target_institution": academic_profile_row.target_institution_name,
-                "target_major": academic_profile_row.target_major_name,
-                "expected_transfer_year": academic_profile_row.expected_transfer_year,
-                "expected_transfer_quarter": academic_profile_row.expected_transfer_quarter,
-                "max_credits_per_quarter": academic_profile_row.max_units_per_quarter or 15,
-                "created_at": academic_profile_row.created_at.isoformat() if academic_profile_row.created_at else None,
-                "updated_at": academic_profile_row.updated_at.isoformat() if academic_profile_row.updated_at else None
+                "id": profile.get("id"),
+                "current_institution": profile.get("current_institution_name"),
+                "current_major": profile.get("current_major_name"),
+                "current_gpa": profile.get("current_gpa"),
+                "current_quarter": profile.get("current_quarter"),
+                "current_year": profile.get("current_year"),
+                "target_institution": profile.get("target_institution_name"),
+                "target_major": profile.get("target_major_name"),
+                "expected_transfer_year": profile.get("expected_transfer_year"),
+                "expected_transfer_quarter": profile.get("expected_transfer_quarter"),
+                "max_credits_per_quarter": profile.get("max_units_per_quarter", 15),
+                "created_at": profile.get("created_at"),
+                "updated_at": profile.get("updated_at")
             }
+        
+        print(f"✅ Profile retrieved for user {current_user.id}: found {len(academic_profiles)} academic profiles")
         
         return ApiResponse[dict](
             success=True,
@@ -105,72 +104,61 @@ async def update_user_profile(
     current_user: User = Depends(AuthService.get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update user academic profile information in Supabase"""
+    """Update user academic profile information in Supabase via REST API"""
     try:
-        # Update the academic_profiles table directly in Supabase
-        update_query = text("""
-            UPDATE academic_profiles 
-            SET 
-                current_institution_name = :current_institution,
-                current_major_name = :current_major,
-                current_year = :current_year,
-                target_institution_name = :target_institution,
-                target_major_name = :target_major,
-                expected_transfer_year = :expected_transfer_year,
-                expected_transfer_quarter = :expected_transfer_quarter,
-                max_units_per_quarter = :max_units_per_quarter,
-                updated_at = NOW()
-            WHERE user_id = :user_id
-            RETURNING *
-        """)
+        if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+            raise Exception("Supabase configuration not found")
         
-        # Execute the update
-        result = db.execute(update_query, {
-            "user_id": str(current_user.id),
-            "current_institution": profile_update.get("current_institution"),
-            "current_major": profile_update.get("current_major"),
+        headers = {
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+            "Content-Type": "application/json",
+            "Prefer": "return=representation"
+        }
+        
+        # Update data
+        update_data = {
+            "current_institution_name": profile_update.get("current_institution"),
+            "current_major_name": profile_update.get("current_major"),
             "current_year": profile_update.get("current_year"),
-            "target_institution": profile_update.get("target_institution"),
-            "target_major": profile_update.get("target_major"),
+            "target_institution_name": profile_update.get("target_institution"),
+            "target_major_name": profile_update.get("target_major"),
             "expected_transfer_year": profile_update.get("expected_transfer_year"),
             "expected_transfer_quarter": profile_update.get("expected_transfer_quarter"),
-            "max_units_per_quarter": profile_update.get("max_credits_per_quarter", 15)
-        })
+            "max_units_per_quarter": profile_update.get("max_credits_per_quarter", 15),
+            "updated_at": "now()"
+        }
         
-        updated_row = result.fetchone()
-        
-        if not updated_row:
-            # If no row was updated, try to create one
-            insert_query = text("""
-                INSERT INTO academic_profiles (
-                    id, user_id, current_institution_name, current_major_name, 
-                    current_year, target_institution_name, target_major_name,
-                    expected_transfer_year, expected_transfer_quarter, max_units_per_quarter,
-                    created_at, updated_at
-                ) VALUES (
-                    :id, :user_id, :current_institution, :current_major,
-                    :current_year, :target_institution, :target_major,
-                    :expected_transfer_year, :expected_transfer_quarter, :max_units_per_quarter,
-                    NOW(), NOW()
-                )
-                RETURNING *
-            """)
+        # Make request to Supabase REST API to update
+        async with httpx.AsyncClient() as client:
+            response = await client.patch(
+                f"{SUPABASE_URL}/rest/v1/academic_profiles?user_id=eq.{current_user.id}",
+                headers=headers,
+                json=update_data
+            )
             
-            result = db.execute(insert_query, {
-                "id": str(uuid.uuid4()),
-                "user_id": str(current_user.id),
-                "current_institution": profile_update.get("current_institution"),
-                "current_major": profile_update.get("current_major"),
-                "current_year": profile_update.get("current_year"),
-                "target_institution": profile_update.get("target_institution"),
-                "target_major": profile_update.get("target_major"),
-                "expected_transfer_year": profile_update.get("expected_transfer_year"),
-                "expected_transfer_quarter": profile_update.get("expected_transfer_quarter"),
-                "max_units_per_quarter": profile_update.get("max_credits_per_quarter", 15)
-            })
-            updated_row = result.fetchone()
-        
-        db.commit()
+            if response.status_code == 200:
+                print(f"✅ Profile updated for user {current_user.id}")
+            elif response.status_code == 406:  # No rows updated
+                # Try to create a new profile
+                create_data = {
+                    "id": str(uuid.uuid4()),
+                    "user_id": str(current_user.id),
+                    **update_data
+                }
+                
+                create_response = await client.post(
+                    f"{SUPABASE_URL}/rest/v1/academic_profiles",
+                    headers=headers,
+                    json=create_data
+                )
+                
+                if create_response.status_code not in [200, 201]:
+                    raise Exception(f"Failed to create profile: {create_response.text}")
+                    
+                print(f"✅ Profile created for user {current_user.id}")
+            else:
+                raise Exception(f"Failed to update profile: {response.text}")
         
         return ApiResponse[dict](
             success=True,
@@ -179,7 +167,6 @@ async def update_user_profile(
         )
         
     except Exception as e:
-        db.rollback()
         print(f"❌ Error updating profile: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

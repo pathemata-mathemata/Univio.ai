@@ -41,17 +41,11 @@ class Settings(BaseSettings):
     
     def get_database_url(self) -> str:
         """
-        Get database URL, prioritizing Supabase configuration for production
+        Get database URL, prioritizing local SQLite for now since Supabase direct connection has issues
         """
-        # If Supabase is configured (production), use Supabase
-        if self.SUPABASE_URL and self.SUPABASE_SERVICE_ROLE_KEY:
-            # Extract project reference from Supabase URL
-            # Format: https://PROJECT_REF.supabase.co -> postgresql://postgres:[PASSWORD]@db.PROJECT_REF.supabase.com:5432/postgres
-            project_ref = self.SUPABASE_URL.replace('https://', '').replace('.supabase.co', '')
-            postgres_url = f"postgresql://postgres.{project_ref}:{self.SUPABASE_SERVICE_ROLE_KEY}@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
-            return postgres_url
-        
-        # Fallback to local DATABASE_URL for development
+        # For now, use local SQLite database for the backend user authentication
+        # Profile data will be fetched via Supabase REST API
+        print(f"🔗 Using local database for authentication: {self.DATABASE_URL}")
         return self.DATABASE_URL
     
     class Config:
