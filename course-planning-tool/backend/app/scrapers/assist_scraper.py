@@ -193,7 +193,6 @@ def _scrape_assist_with_selenium(academic_year, institution, target_institution,
                 raise Exception(f"Could not initialize Chrome WebDriver after {max_retries} attempts. Check if Chrome and ChromeDriver are properly installed and configured. Last error: {e}")
             
             # Wait before retry
-            import time
             time.sleep(2)
             
     if not driver:
