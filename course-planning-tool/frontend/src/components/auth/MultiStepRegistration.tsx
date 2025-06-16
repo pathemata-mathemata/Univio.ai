@@ -28,6 +28,8 @@ export interface RegistrationData {
   currentInstitution: string;
   currentMajor: string;
   currentGPA: string;
+  currentQuarter: string;
+  currentYear: string;
   expectedTransferYear: string;
   expectedTransferQuarter: string;
   targetInstitution: string;
@@ -46,6 +48,8 @@ const initialData: RegistrationData = {
   currentInstitution: '',
   currentMajor: '',
   currentGPA: '',
+  currentQuarter: 'fall',
+  currentYear: new Date().getFullYear().toString(),
   expectedTransferYear: '',
   expectedTransferQuarter: '',
   targetInstitution: '',

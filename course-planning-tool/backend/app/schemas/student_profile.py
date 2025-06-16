@@ -5,14 +5,14 @@ from app.models.student_profile import Quarter
 
 # Profile creation/update
 class StudentProfileCreate(BaseModel):
-    current_institution: str
-    current_major: str
-    current_quarter: Quarter
-    current_year: int
-    target_institution: str
-    target_major: str
-    expected_transfer_year: int
-    expected_transfer_quarter: Quarter
+    currentInstitution: str
+    currentMajor: str
+    currentQuarter: str
+    currentYear: int
+    targetInstitution: str
+    targetMajor: str
+    expectedTransferYear: int
+    expectedTransferQuarter: str
 
 class StudentProfileUpdate(BaseModel):
     current_institution: Optional[str] = None

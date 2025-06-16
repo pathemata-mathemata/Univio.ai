@@ -1,8 +1,86 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { profileApi } from "@/lib/api";
 import TransferPlanningSection from "@/components/dashboard/TransferPlanningSection";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
+interface UserProfile {
+  user: {
+    id: number;
+    email: string;
+    name: string;
+    edu_email?: string;
+    edu_email_verified: boolean;
+    is_verified: boolean;
+    created_at?: string;
+    updated_at?: string;
+  };
+  academic_profile?: {
+    id: number;
+    current_institution: string;
+    current_major: string;
+    current_quarter?: string;
+    current_year: number;
+    target_institution: string;
+    target_major: string;
+    expected_transfer_year: number;
+    expected_transfer_quarter?: string;
+    max_credits_per_quarter: number;
+    created_at?: string;
+    updated_at?: string;
+  };
+}
+
 export default function SettingsPage() {
+  const [profileData, setProfileData] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        const response = await profileApi.getProfile();
+        if (response.success) {
+          setProfileData(response.data);
+        } else {
+          setError("Failed to load profile data");
+        }
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+        setError("Failed to load profile data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col w-full bg-white">
+        <TransferPlanningSection />
+        <div className="flex justify-center items-center py-20">
+          <div className="text-[#607589]">Loading profile data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col w-full bg-white">
+        <TransferPlanningSection />
+        <div className="flex justify-center items-center py-20">
+          <div className="text-red-500">{error}</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col w-full bg-white">
       <TransferPlanningSection />
@@ -32,13 +110,48 @@ export default function SettingsPage() {
                       <div className="flex flex-col gap-2">
                         <label className="font-medium text-[#111416] text-sm">Full Name</label>
                         <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                          <p className="text-[#607589] text-sm">Coming soon - will sync with user data</p>
+                          <p className="text-[#111416] text-sm">
+                            {profileData?.user.name || "Not provided"}
+                          </p>
                         </div>
                       </div>
                       <div className="flex flex-col gap-2">
                         <label className="font-medium text-[#111416] text-sm">Email</label>
                         <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                          <p className="text-[#607589] text-sm">Coming soon - will sync with user data</p>
+                          <p className="text-[#111416] text-sm">
+                            {profileData?.user.email || "Not provided"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="font-medium text-[#111416] text-sm">Educational Email</label>
+                        <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
+                          <p className="text-[#111416] text-sm">
+                            {profileData?.user.edu_email || "Not provided"}
+                            {profileData?.user.edu_email && (
+                              <span className={`ml-2 text-xs px-2 py-1 rounded ${
+                                profileData.user.edu_email_verified 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {profileData.user.edu_email_verified ? 'Verified' : 'Not Verified'}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="font-medium text-[#111416] text-sm">Account Status</label>
+                        <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
+                          <p className="text-[#111416] text-sm">
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              profileData?.user.is_verified 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {profileData?.user.is_verified ? 'Verified' : 'Pending Verification'}
+                            </span>
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -47,32 +160,64 @@ export default function SettingsPage() {
                   {/* Academic Information Section */}
                   <section className="flex flex-col gap-4 p-6 border border-[#dbe0e5] rounded-lg">
                     <h2 className="font-semibold text-xl text-[#111416]">Academic Information</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-2">
-                        <label className="font-medium text-[#111416] text-sm">Current Institution</label>
-                        <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                          <p className="text-[#607589] text-sm">Will display from transfer planning form</p>
+                    {profileData?.academic_profile ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-2">
+                          <label className="font-medium text-[#111416] text-sm">Current Institution</label>
+                          <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
+                            <p className="text-[#111416] text-sm">
+                              {profileData.academic_profile.current_institution}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label className="font-medium text-[#111416] text-sm">Current Major</label>
+                          <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
+                            <p className="text-[#111416] text-sm">
+                              {profileData.academic_profile.current_major}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label className="font-medium text-[#111416] text-sm">Target Institution</label>
+                          <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
+                            <p className="text-[#111416] text-sm">
+                              {profileData.academic_profile.target_institution}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label className="font-medium text-[#111416] text-sm">Target Major</label>
+                          <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
+                            <p className="text-[#111416] text-sm">
+                              {profileData.academic_profile.target_major}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label className="font-medium text-[#111416] text-sm">Current Academic Year</label>
+                          <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
+                            <p className="text-[#111416] text-sm">
+                              {profileData.academic_profile.current_quarter} {profileData.academic_profile.current_year}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label className="font-medium text-[#111416] text-sm">Expected Transfer</label>
+                          <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
+                            <p className="text-[#111416] text-sm">
+                              {profileData.academic_profile.expected_transfer_quarter} {profileData.academic_profile.expected_transfer_year}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="font-medium text-[#111416] text-sm">Current Major</label>
-                        <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                          <p className="text-[#607589] text-sm">Will display from transfer planning form</p>
-                        </div>
+                    ) : (
+                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-yellow-800 text-sm">
+                          Academic profile not set up yet. Please complete your transfer planning to add this information.
+                        </p>
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="font-medium text-[#111416] text-sm">Target Institution</label>
-                        <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                          <p className="text-[#607589] text-sm">Will display from transfer planning form</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="font-medium text-[#111416] text-sm">Transfer Year</label>
-                        <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                          <p className="text-[#607589] text-sm">Will display from transfer planning form</p>
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </section>
 
                   {/* Academic Preferences Section */}
@@ -81,7 +226,10 @@ export default function SettingsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex flex-col gap-2">
                         <label className="font-medium text-[#111416] text-sm">Max Credits Per Quarter</label>
-                        <select className="p-3 bg-white rounded-lg border border-[#dbe0e5] text-[#111416]">
+                        <select 
+                          className="p-3 bg-white rounded-lg border border-[#dbe0e5] text-[#111416]"
+                          defaultValue={profileData?.academic_profile?.max_credits_per_quarter || 15}
+                        >
                           <option value="12">12 Credits</option>
                           <option value="15">15 Credits</option>
                           <option value="18">18 Credits</option>

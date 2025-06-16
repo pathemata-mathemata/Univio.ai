@@ -93,14 +93,15 @@ async def register_extended(
     
     # Create student profile if provided
     if user_data.profile:
-        from app.models.student_profile import StudentProfile
+        from app.models.student_profile import StudentProfile, Quarter
         profile = StudentProfile(
             user_id=user.id,
             current_institution=user_data.profile.currentInstitution,
             current_major=user_data.profile.currentMajor,
-            current_gpa=user_data.profile.currentGPA,
+            current_quarter=Quarter(user_data.profile.currentQuarter),
+            current_year=user_data.profile.currentYear,
             expected_transfer_year=user_data.profile.expectedTransferYear,
-            expected_transfer_quarter=user_data.profile.expectedTransferQuarter,
+            expected_transfer_quarter=Quarter(user_data.profile.expectedTransferQuarter),
             target_institution=user_data.profile.targetInstitution,
             target_major=user_data.profile.targetMajor,
         )

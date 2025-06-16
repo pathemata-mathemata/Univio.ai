@@ -128,11 +128,11 @@ export const courseApi = {
 // Profile API
 export const profileApi = {
   getProfile: async () => {
-    return fetchApi<ApiResponse<any>>("/profile");
+    return fetchApi<ApiResponse<any>>("/users/profile");
   },
 
   updateProfile: async (data: any) => {
-    return fetchApi<ApiResponse<any>>("/profile", {
+    return fetchApi<ApiResponse<any>>("/users/profile", {
       method: "PUT",
       body: JSON.stringify(data),
     });

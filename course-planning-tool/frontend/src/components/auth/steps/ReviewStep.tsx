@@ -25,47 +25,50 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
     setErrorMessage('');
 
     try {
-      // In production, replace this with actual API call
+      // Prepare registration payload for backend
       const registrationPayload = {
-        // Personal email and password for account creation
         email: data.personalEmail,
         password: data.password,
         name: `${data.firstName} ${data.lastName}`,
-        
-        // Educational verification
         eduEmail: data.eduEmail,
         eduEmailVerified: data.eduEmailVerified,
-        
-        // Academic profile information
         profile: {
-          firstName: data.firstName,
-          lastName: data.lastName,
           currentInstitution: data.currentInstitution,
           currentMajor: data.currentMajor,
-          currentGPA: parseFloat(data.currentGPA),
+          currentQuarter: data.currentQuarter.toLowerCase(),
+          currentYear: parseInt(data.currentYear),
           expectedTransferYear: parseInt(data.expectedTransferYear),
-          expectedTransferQuarter: data.expectedTransferQuarter,
+          expectedTransferQuarter: data.expectedTransferQuarter.toLowerCase(),
           targetInstitution: data.targetInstitution,
           targetMajor: data.targetMajor,
         }
       };
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      console.log('🚀 Sending registration request to backend...');
       
-      // In production, you would call your backend API here:
-      // const response = await fetch('/api/v1/auth/register', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(registrationPayload)
-      // });
-      // 
-      // if (!response.ok) {
-      //   throw new Error('Registration failed');
-      // }
-      // 
-      // const result = await response.json();
-      
+      // Call the backend registration endpoint
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/auth/register-extended`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(registrationPayload)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.detail || result.error || 'Registration failed');
+      }
+
+      console.log('✅ Registration successful:', result);
+
+      // Store the authentication token
+      if (result.access_token) {
+        localStorage.setItem('access_token', result.access_token);
+        localStorage.setItem('authToken', result.access_token); // For compatibility
+      }
+
       setRegistrationStatus('success');
       
       // Redirect to intended page or dashboard after successful registration
@@ -76,9 +79,9 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
       }, 2000);
       
     } catch (error) {
+      console.error('❌ Registration error:', error);
       setRegistrationStatus('error');
-      setErrorMessage('Registration failed. Please try again.');
-      console.error('Registration error:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -105,96 +108,123 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
     );
   }
 
+  if (registrationStatus === 'error') {
+    return (
+      <div className="text-center space-y-6">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+          <AlertCircle className="w-8 h-8 text-red-600" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-[#111416] mb-2">Registration Failed</h2>
+          <p className="text-[#607589] mb-4">{errorMessage}</p>
+        </div>
+        <div className="space-x-4">
+          <Button onClick={() => setRegistrationStatus('idle')} className="bg-[#0c7ff2] hover:bg-[#0a6fd1]">
+            Try Again
+          </Button>
+          <Button variant="outline" onClick={onPrev}>
+            Go Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="text-center">
-        <div className="w-16 h-16 bg-[#eff2f4] rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle className="w-8 h-8 text-[#111416]" />
-        </div>
         <h2 className="text-2xl font-bold text-[#111416] mb-2">Review Your Information</h2>
-        <p className="text-[#607589]">
-          Please review all your information before creating your account
-        </p>
+        <p className="text-[#607589]">Please review your details before creating your account.</p>
       </div>
 
-      <div className="space-y-6">
-        {/* Student Verification */}
-        <div className="bg-[#f8f9fa] border border-[#e5e8ea] rounded-lg p-4">
-          <div className="flex items-center mb-3">
-            <Mail className="w-5 h-5 text-[#111416] mr-2" />
-            <h3 className="font-semibold text-[#111416]">Student Verification</h3>
-            <Badge variant="outline" className="ml-auto text-green-600 border-green-600">
-              ✓ Verified
-            </Badge>
-          </div>
-          <p className="text-sm text-[#607589]">
-            <strong>Educational Email:</strong> {data.eduEmail}
-          </p>
+      {/* Personal Information */}
+      <div className="space-y-4 p-6 border border-[#dbe0e5] rounded-lg">
+        <div className="flex items-center gap-2 mb-4">
+          <User className="w-5 h-5 text-[#0c7ff2]" />
+          <h3 className="font-semibold text-[#111416]">Personal Information</h3>
         </div>
-
-        {/* Account Information */}
-        <div className="bg-[#f8f9fa] border border-[#e5e8ea] rounded-lg p-4">
-          <div className="flex items-center mb-3">
-            <User className="w-5 h-5 text-[#111416] mr-2" />
-            <h3 className="font-semibold text-[#111416]">Account Information</h3>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="text-[#607589]">Name:</span>
+            <p className="font-medium text-[#111416]">{data.firstName} {data.lastName}</p>
           </div>
-          <div className="space-y-2 text-sm text-[#607589]">
-            <p><strong>Name:</strong> {data.firstName} {data.lastName}</p>
-            <p><strong>Personal Email:</strong> {data.personalEmail}</p>
-            <p><strong>Password:</strong> ••••••••</p>
-          </div>
-        </div>
-
-        {/* Current Academic Status */}
-        <div className="bg-[#f8f9fa] border border-[#e5e8ea] rounded-lg p-4">
-          <div className="flex items-center mb-3">
-            <GraduationCap className="w-5 h-5 text-[#111416] mr-2" />
-            <h3 className="font-semibold text-[#111416]">Current Academic Status</h3>
-          </div>
-          <div className="space-y-2 text-sm text-[#607589]">
-            <p><strong>Institution:</strong> {data.currentInstitution}</p>
-            <p><strong>Major:</strong> {data.currentMajor}</p>
-            <p><strong>GPA:</strong> {data.currentGPA}</p>
-          </div>
-        </div>
-
-        {/* Transfer Goals */}
-        <div className="bg-[#f8f9fa] border border-[#e5e8ea] rounded-lg p-4">
-          <div className="flex items-center mb-3">
-            <Target className="w-5 h-5 text-[#111416] mr-2" />
-            <h3 className="font-semibold text-[#111416]">Transfer Goals</h3>
-          </div>
-          <div className="space-y-2 text-sm text-[#607589]">
-            <p><strong>Target Institution:</strong> {data.targetInstitution}</p>
-            <p><strong>Target Major:</strong> {data.targetMajor}</p>
-            <p><strong>Expected Transfer:</strong> {data.expectedTransferQuarter} {data.expectedTransferYear}</p>
+          <div>
+            <span className="text-[#607589]">Personal Email:</span>
+            <p className="font-medium text-[#111416]">{data.personalEmail}</p>
           </div>
         </div>
       </div>
 
-      {registrationStatus === 'error' && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+      {/* Educational Information */}
+      <div className="space-y-4 p-6 border border-[#dbe0e5] rounded-lg">
+        <div className="flex items-center gap-2 mb-4">
+          <Mail className="w-5 h-5 text-[#0c7ff2]" />
+          <h3 className="font-semibold text-[#111416]">Educational Verification</h3>
+        </div>
+        <div className="text-sm">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-red-800">Registration Failed</p>
-              <p className="text-sm text-red-600">{errorMessage}</p>
+              <span className="text-[#607589]">Educational Email:</span>
+              <p className="font-medium text-[#111416]">{data.eduEmail}</p>
+            </div>
+            <div className={`px-2 py-1 rounded text-xs ${data.eduEmailVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+              {data.eduEmailVerified ? 'Verified' : 'Not Verified'}
             </div>
           </div>
         </div>
-      )}
+      </div>
 
-      <div className="bg-[#f8f9fa] border border-[#e5e8ea] rounded-lg p-4">
-        <div className="text-sm text-[#607589]">
-          <p className="font-medium mb-2 text-[#111416]">By creating your account, you agree to:</p>
-          <ul className="space-y-1 text-xs">
-            <li>• UniVio's Terms of Service and Privacy Policy</li>
-            <li>• Receive course planning recommendations and updates</li>
-            <li>• Allow us to help you plan your academic transfer journey</li>
-          </ul>
+      {/* Academic Information */}
+      <div className="space-y-4 p-6 border border-[#dbe0e5] rounded-lg">
+        <div className="flex items-center gap-2 mb-4">
+          <GraduationCap className="w-5 h-5 text-[#0c7ff2]" />
+          <h3 className="font-semibold text-[#111416]">Academic Information</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="text-[#607589]">Current Institution:</span>
+            <p className="font-medium text-[#111416]">{data.currentInstitution}</p>
+          </div>
+          <div>
+            <span className="text-[#607589]">Current Major:</span>
+            <p className="font-medium text-[#111416]">{data.currentMajor}</p>
+          </div>
+          <div>
+            <span className="text-[#607589]">Current GPA:</span>
+            <p className="font-medium text-[#111416]">{data.currentGPA}</p>
+          </div>
+          <div>
+            <span className="text-[#607589]">Transfer Timeline:</span>
+            <p className="font-medium text-[#111416]">{data.expectedTransferQuarter} {data.expectedTransferYear}</p>
+          </div>
+          <div>
+            <span className="text-[#607589]">Target Institution:</span>
+            <p className="font-medium text-[#111416]">{data.targetInstitution}</p>
+          </div>
+          <div>
+            <span className="text-[#607589]">Target Major:</span>
+            <p className="font-medium text-[#111416]">{data.targetMajor}</p>
+          </div>
         </div>
       </div>
 
+      {/* Terms and Conditions */}
+      <div className="p-4 bg-[#f8f9fa] border border-[#dbe0e5] rounded-lg">
+        <div className="flex items-start gap-3">
+          <input 
+            type="checkbox" 
+            id="terms" 
+            className="mt-1 h-4 w-4 text-[#0c7ff2] rounded border-[#dbe0e5]" 
+            defaultChecked 
+          />
+          <label htmlFor="terms" className="text-sm text-[#607589]">
+            I agree to the <a href="#" className="text-[#0c7ff2] hover:underline">Terms of Service</a> and <a href="#" className="text-[#0c7ff2] hover:underline">Privacy Policy</a>. 
+            I understand that my educational information will be used to provide personalized transfer planning services.
+          </label>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
       <div className="flex justify-between pt-6">
         <Button variant="outline" onClick={onPrev} disabled={isLoading}>
           Back
@@ -202,16 +232,9 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
         <Button 
           onClick={handleRegister} 
           disabled={isLoading}
-          className="px-8 bg-[#111416] hover:bg-[#111416]/90"
+          className="bg-[#0c7ff2] hover:bg-[#0a6fd1] px-8"
         >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Creating Account...
-            </>
-          ) : (
-            'Create My Account'
-          )}
+          {isLoading ? 'Creating Account...' : 'Create Account'}
         </Button>
       </div>
     </div>
