@@ -51,12 +51,17 @@ export async function GET(request: Request) {
       const institutionName = course.institution_name || 'Unknown'
       
       if (!acc[institutionName]) {
+        // Handle institutions as array (from join) or single object
+        const institutionData = Array.isArray(course.institutions) 
+          ? course.institutions[0] 
+          : course.institutions;
+        
         acc[institutionName] = {
           institution: {
-            name: course.institutions?.name || institutionName,
-            short_name: course.institutions?.short_name || '',
-            type: course.institutions?.type || '',
-            system_name: course.institutions?.system_name || ''
+            name: institutionData?.name || institutionName,
+            short_name: institutionData?.short_name || '',
+            type: institutionData?.type || '',
+            system_name: institutionData?.system_name || ''
           },
           courses: []
         }
@@ -81,7 +86,10 @@ export async function GET(request: Request) {
       totalInstitutions: Object.keys(coursesByInstitution).length,
       transferableCourses: courses?.filter(c => c.transferable).length || 0,
       coursesByType: courses?.reduce((acc, course) => {
-        const type = course.institutions?.type || 'unknown'
+        const institutionData = Array.isArray(course.institutions) 
+          ? course.institutions[0] 
+          : course.institutions;
+        const type = institutionData?.type || 'unknown'
         acc[type] = (acc[type] || 0) + 1
         return acc
       }, {} as Record<string, number>) || {},
