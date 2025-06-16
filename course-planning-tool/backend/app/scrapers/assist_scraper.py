@@ -12,6 +12,7 @@ import argparse
 import sys
 import os
 from selenium.common.exceptions import TimeoutException
+from app.core.config import settings
 
 def scrape_assist_data(academic_year, institution, target_institution, major_filter):
     """
@@ -106,7 +107,7 @@ def _scrape_assist_with_selenium(academic_year, institution, target_institution,
     
     # Set ChromeDriver path - try common paths
     chromedriver_paths = [
-        "/usr/bin/chromedriver",            # ChromeDriver from chromium-driver package
+        "/usr/bin/chromedriver",            # ChromeDriver from chromium-driver package (confirmed working)
         "/usr/local/bin/chromedriver",      # Alternative path
         "/opt/chromedriver/chromedriver",   # Another common path
     ]
@@ -122,7 +123,7 @@ def _scrape_assist_with_selenium(academic_year, institution, target_institution,
                 print(f"🔧 Auto-detected ChromeDriver: {path}")
                 break
         if not chromedriver_path:
-            chromedriver_path = "/usr/local/bin/chromedriver"  # Default from Dockerfile
+            chromedriver_path = settings.CHROME_DRIVER_PATH  # Use config default
     
     print(f"🚀 Initializing Chrome WebDriver...")
     print(f"   ChromeDriver path: {chromedriver_path}")
