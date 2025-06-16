@@ -1,6 +1,38 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 
+// Type for course data from Supabase
+type CourseData = {
+  id: string
+  course_code: string
+  course_name: string
+  units: number
+  category: string
+  subject_area: string
+  transferable: boolean
+  institution_id: string
+  institution_name: string
+  institutions: {
+    name: string
+    short_name: string
+    type: string
+    system_name: string
+  } | {
+    name: string
+    short_name: string
+    type: string
+    system_name: string
+  }[]
+}
+
+// Type for course data with all fields (used in POST method)
+type FullCourseData = CourseData & {
+  description?: string
+  prerequisites?: string
+  typical_quarters?: string
+  [key: string]: any // For any additional fields from select('*')
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -47,7 +79,7 @@ export async function GET(request: Request) {
     }
 
     // Group courses by institution
-    const coursesByInstitution = courses?.reduce((acc: Record<string, any>, course) => {
+    const coursesByInstitution = courses?.reduce((acc: Record<string, any>, course: CourseData) => {
       const institutionName = course.institution_name || 'Unknown'
       
       if (!acc[institutionName]) {
@@ -84,8 +116,8 @@ export async function GET(request: Request) {
     const stats = {
       totalCourses: courses?.length || 0,
       totalInstitutions: Object.keys(coursesByInstitution).length,
-      transferableCourses: courses?.filter(c => c.transferable).length || 0,
-      coursesByType: courses?.reduce((acc: Record<string, number>, course) => {
+      transferableCourses: courses?.filter((c: CourseData) => c.transferable).length || 0,
+      coursesByType: courses?.reduce((acc: Record<string, number>, course: CourseData) => {
         const institutionData = Array.isArray(course.institutions) 
           ? course.institutions[0] 
           : course.institutions;
@@ -93,7 +125,7 @@ export async function GET(request: Request) {
         acc[type] = (acc[type] || 0) + 1
         return acc
       }, {} as Record<string, number>) || {},
-      coursesBySubject: courses?.reduce((acc: Record<string, number>, course) => {
+      coursesBySubject: courses?.reduce((acc: Record<string, number>, course: CourseData) => {
         const subject = course.subject_area || 'unknown'
         acc[subject] = (acc[subject] || 0) + 1
         return acc
@@ -158,7 +190,7 @@ export async function POST(request: Request) {
       message: `Found ${courses?.length || 0} courses`,
       data: {
         institution: institutionInfo,
-        courses: courses?.map(course => ({
+        courses: courses?.map((course: FullCourseData) => ({
           id: course.id,
           code: course.course_code,
           name: course.course_name,
