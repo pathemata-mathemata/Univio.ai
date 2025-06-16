@@ -96,7 +96,7 @@ export default function CoursesPage(): JSX.Element {
     };
     
     console.log('Full Request Data:', requestData);
-    console.log('API URL:', `${process.env.NEXT_PUBLIC_API_URL}/api/v1/transfer/analyze-public`);
+    console.log('API URL:', '/api/v1/transfer/analyze-public');
 
     // Start loading state
     setIsLoading(true);
@@ -104,7 +104,7 @@ export default function CoursesPage(): JSX.Element {
 
     try {
       // Call API to analyze transfer requirements with all data
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/transfer/analyze-public`, {
+      const response = await fetch('/api/v1/transfer/analyze-public', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

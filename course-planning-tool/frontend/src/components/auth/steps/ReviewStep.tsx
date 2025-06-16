@@ -47,7 +47,7 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
       console.log('🚀 Sending registration request to backend...');
       
       // Call the backend registration endpoint
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/auth/register-extended`, {
+      const response = await fetch('/api/v1/auth/register-extended', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
