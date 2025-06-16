@@ -62,10 +62,7 @@ export async function POST(request: NextRequest) {
       first_name: firstName,
       last_name: lastName,
       edu_email: eduEmail,
-      edu_email_verified: false,
-      university,
-      major,
-      graduation_year: graduationYear ? parseInt(graduationYear) : null
+      edu_email_verified: false
     });
 
     if (error || !user) {
@@ -98,10 +95,7 @@ export async function POST(request: NextRequest) {
         firstName: user.first_name,
         lastName: user.last_name,
         eduEmail: user.edu_email,
-        eduEmailVerified: user.edu_email_verified,
-        university: user.university,
-        major: user.major,
-        graduationYear: user.graduation_year
+        eduEmailVerified: user.edu_email_verified
       }
     });
 
