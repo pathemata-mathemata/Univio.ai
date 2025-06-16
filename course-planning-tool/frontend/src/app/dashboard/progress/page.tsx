@@ -12,6 +12,7 @@ interface TransferAnalysisData {
   major: string;
   target_requirements: any[];
   source_requirements: any;
+  is_fallback?: boolean;
   ai_schedule?: {
     quarter: {
       quarter_name: string;
