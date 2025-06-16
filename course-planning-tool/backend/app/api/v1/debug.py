@@ -38,10 +38,12 @@ async def check_chrome_status():
     
     # Check Chrome binaries
     chrome_paths = [
-        "/usr/bin/google-chrome",
-        "/usr/bin/google-chrome-stable",
-        "/usr/bin/chromium-browser",
-        "/opt/google/chrome/chrome"
+        "/usr/bin/chromium",                # Chromium binary (main one we found)
+        "/usr/bin/chromium-browser",       # Alternative Chromium path
+        "/usr/lib/chromium/chromium",      # Found via system exploration
+        "/usr/bin/google-chrome",          # Chrome fallback
+        "/usr/bin/google-chrome-stable",   # Alternative Chrome path
+        "/opt/google/chrome/chrome"        # Another common Chrome path
     ]
     
     # Check ChromeDriver
@@ -70,10 +72,12 @@ async def check_chrome_status():
     
     # Command checks
     commands = [
-        "which google-chrome",
+        "which chromium",
         "which chromedriver", 
-        "google-chrome --version",
-        "chromedriver --version"
+        "chromium --version",
+        "chromedriver --version",
+        "which google-chrome",
+        "google-chrome --version"
     ]
     
     command_results = [run_cmd(cmd) for cmd in commands]
@@ -84,10 +88,20 @@ async def check_chrome_status():
     chromedriver_available = any(f["exists"] for f in chromedriver_files)
     
     if chrome_available:
-        chrome_test = run_cmd(
-            "/usr/bin/google-chrome --headless --no-sandbox --disable-dev-shm-usage "
-            "--disable-gpu --dump-dom --virtual-time-budget=1000 about:blank"
-        )
+        # Try to find the first available chrome binary for testing
+        chrome_binary = None
+        for path in chrome_paths:
+            if os.path.exists(path) and os.access(path, os.X_OK):
+                chrome_binary = path
+                break
+        
+        if chrome_binary:
+            chrome_test = run_cmd(
+                f"{chrome_binary} --headless --no-sandbox --disable-dev-shm-usage "
+                "--disable-gpu --dump-dom --virtual-time-budget=1000 about:blank"
+            )
+        else:
+            chrome_test = {"error": "No executable Chrome binary found"}
     
     return {
         "environment": env_info,
