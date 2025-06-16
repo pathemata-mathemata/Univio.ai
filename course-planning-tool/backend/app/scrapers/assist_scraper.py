@@ -82,9 +82,14 @@ def _scrape_assist_with_selenium(academic_year, institution, target_institution,
     chrome_paths = [
         "/usr/bin/chromium",                # Chromium binary (from our Dockerfile)
         "/usr/bin/chromium-browser",       # Alternative Chromium path
+        "/usr/bin/chromium-browser",       # Debian/Ubuntu Chromium
+        "/snap/bin/chromium",              # Snap package Chromium
+        "/usr/lib/chromium-browser/chromium-browser", # Another Ubuntu path
         "/usr/bin/google-chrome",           # Chrome fallback
         "/usr/bin/google-chrome-stable",   # Alternative Chrome path  
         "/opt/google/chrome/chrome",       # Another common Chrome path
+        "/usr/bin/chrome",                 # Generic chrome
+        "/opt/chrome/chrome",              # Alternative Chrome location
     ]
     
     chrome_binary = os.getenv("CHROME_BINARY_PATH")

@@ -2,6 +2,7 @@ from fastapi import APIRouter
 import subprocess
 import os
 import sys
+import glob
 
 router = APIRouter()
 
@@ -125,4 +126,60 @@ async def test_scraper():
             "success": False,
             "error": str(e),
             "message": "Scraper test failed"
-        } 
+        }
+
+@router.get("/system-explore")
+async def explore_system():
+    """Explore system to find Chrome/Chromium installations"""
+    
+    try:
+        results = {
+            "chrome_search": {},
+            "apt_packages": {},
+            "process_check": {},
+            "file_searches": {}
+        }
+        
+        # Search for Chrome/Chromium files
+        search_patterns = [
+            "/usr/bin/*chrome*",
+            "/usr/bin/*chromium*", 
+            "/usr/local/bin/*chrome*",
+            "/snap/bin/*chrome*",
+            "/opt/*/chrome*",
+            "/usr/lib/*chrome*",
+            "/usr/share/applications/*chrome*"
+        ]
+        
+        for pattern in search_patterns:
+            try:
+                matches = glob.glob(pattern)
+                results["file_searches"][pattern] = matches
+            except Exception as e:
+                results["file_searches"][pattern] = f"Error: {str(e)}"
+        
+        # Check what packages are installed
+        package_commands = [
+            ["dpkg", "-l", "chromium*"],
+            ["dpkg", "-l", "*chrome*"],
+            ["which", "chromium"],
+            ["which", "chromium-browser"], 
+            ["whereis", "chromium"],
+            ["find", "/usr", "-name", "*chromium*", "-type", "f", "-executable"]
+        ]
+        
+        for cmd in package_commands:
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                results["apt_packages"][" ".join(cmd)] = {
+                    "exit_code": result.returncode,
+                    "stdout": result.stdout,
+                    "stderr": result.stderr
+                }
+            except Exception as e:
+                results["apt_packages"][" ".join(cmd)] = f"Error: {str(e)}"
+        
+        return {"success": True, "results": results}
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)} 
