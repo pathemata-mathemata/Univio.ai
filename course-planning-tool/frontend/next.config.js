@@ -2,6 +2,7 @@ const path = require('path')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Updated for production deployment with sharp and remotePatterns
   output: 'standalone',
   images: {
     remotePatterns: [
