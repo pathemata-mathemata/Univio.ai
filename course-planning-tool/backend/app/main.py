@@ -14,7 +14,13 @@ setup_logging()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    await create_tables()
+    try:
+        await create_tables()
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"❌ Failed to create database tables during startup: {e}")
+        logger.warning("⚠️ Application will start but database features may not work")
     yield
     # Shutdown
     pass
@@ -60,8 +66,29 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy"}
+    """Health check endpoint with database status"""
+    import logging
+    from app.core.database import engine
+    
+    logger = logging.getLogger(__name__)
+    
+    health_status = {
+        "status": "healthy",
+        "version": settings.VERSION,
+        "database": "unknown"
+    }
+    
+    # Test database connection
+    try:
+        with engine.connect() as conn:
+            result = conn.execute("SELECT 1")
+            health_status["database"] = "connected"
+    except Exception as e:
+        logger.warning(f"Database health check failed: {e}")
+        health_status["database"] = "disconnected"
+        health_status["database_error"] = str(e)
+        
+    return health_status
 
 if __name__ == "__main__":
     import uvicorn

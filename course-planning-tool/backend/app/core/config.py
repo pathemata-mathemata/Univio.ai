@@ -48,13 +48,19 @@ class Settings(BaseSettings):
             # Debug information
             print(f"🔍 Supabase URL: {self.SUPABASE_URL}")
             print(f"🔍 Postgres User: {self.POSTGRES_USER}")
+            print(f"🔍 Postgres Host: {self.POSTGRES_HOST}")
+            print(f"🔍 Postgres Port: {self.POSTGRES_PORT}")
             print(f"🔍 Postgres DB: {self.POSTGRES_DB or 'postgres'}")
             
-            # Use pooled connection (port 6543) - this is the standard Supabase connection
-            pooled_host = "aws-0-us-east-1.pooler.supabase.com"
-            postgres_url = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{pooled_host}:6543/{self.POSTGRES_DB or 'postgres'}"
+            # Use the environment variables directly
+            host = self.POSTGRES_HOST or "aws-0-us-east-1.pooler.supabase.com"
+            port = self.POSTGRES_PORT or "6543"
+            database = self.POSTGRES_DB or "postgres"
             
-            print(f"🔗 Using Supabase PostgreSQL (pooled): postgresql://{self.POSTGRES_USER}:****@{pooled_host}:6543/{self.POSTGRES_DB or 'postgres'}")
+            # Construct the PostgreSQL connection string using the provided credentials
+            postgres_url = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{host}:{port}/{database}"
+            
+            print(f"🔗 Using Supabase PostgreSQL: postgresql://{self.POSTGRES_USER}:****@{host}:{port}/{database}")
             return postgres_url
         else:
             # Missing credentials - show what's missing

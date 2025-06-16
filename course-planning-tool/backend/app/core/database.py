@@ -27,14 +27,25 @@ def create_database_engine(url: str):
                 "options": "-c timezone=utc"
             }
         )
-        # Test the connection immediately
+        # Test the connection immediately - but make it non-blocking for startup
         try:
             with engine.connect() as conn:
                 result = conn.execute("SELECT 1")
                 logger.info("✅ PostgreSQL connection test successful")
         except Exception as e:
             logger.error(f"❌ PostgreSQL connection test failed: {e}")
-            raise
+            logger.error("This might be due to:")
+            logger.error("1. Incorrect Supabase project credentials")
+            logger.error("2. Supabase project might be paused or deleted")
+            logger.error("3. Network connectivity issues")
+            logger.error("4. Invalid database password")
+            
+            # For production deployments, we want to continue startup but log the error
+            # The application can still serve static content and handle other requests
+            logger.warning("⚠️ Starting application without database connection - some features will be unavailable")
+            
+            # Don't raise the exception - let the app start and handle database errors gracefully
+            # raise
         return engine
     else:
         # SQLite configuration (only for local development)
@@ -51,11 +62,16 @@ Base = declarative_base()
 
 def get_db():
     """Database session dependency for FastAPI"""
-    db = SessionLocal()
     try:
-        yield db
-    finally:
-        db.close()
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+    except Exception as e:
+        logger.error(f"❌ Failed to create database session: {e}")
+        logger.error("Database might not be available - check connection settings")
+        raise
 
 async def create_tables():
     """Create tables if they don't exist"""
