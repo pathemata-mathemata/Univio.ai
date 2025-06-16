@@ -2,8 +2,9 @@ import { Resend } from 'resend';
 import fs from 'fs';
 import path from 'path';
 
-// Initialize Resend with your API key
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend with your API key, handle build time gracefully
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 interface VerificationEmailData {
   to: string;
@@ -33,6 +34,10 @@ export class EmailService {
    */
   static async sendVerificationCode({ to, code, firstName, emailType = 'edu' }: VerificationEmailData) {
     try {
+      if (!resend) {
+        throw new Error('Email service not available - missing API key');
+      }
+
       const isEduEmail = emailType === 'edu';
       const subject = isEduEmail 
         ? 'Verify Your Student Email - UniVio' 
@@ -68,6 +73,10 @@ export class EmailService {
    */
   static async sendWelcomeEmail({ to, firstName, eduEmail }: WelcomeEmailData) {
     try {
+      if (!resend) {
+        return { success: false, error: 'Email service not available - missing API key' };
+      }
+
       const emailData: any = {
         from: `UniVio <onboarding@resend.dev>`,
         to: [to],
@@ -96,6 +105,10 @@ export class EmailService {
    */
   static async sendDualVerificationCompleteEmail({ to, firstName, eduEmail }: WelcomeEmailData) {
     try {
+      if (!resend) {
+        return { success: false, error: 'Email service not available - missing API key' };
+      }
+
       const emailData: any = {
         from: `UniVio <onboarding@resend.dev>`,
         to: [to],

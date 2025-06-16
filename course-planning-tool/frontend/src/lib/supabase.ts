@@ -1,15 +1,40 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  }
-})
+// Check if we're in build time (environment variables might not be available)
+const isBuildTime = !supabaseUrl || !supabaseAnonKey
+
+// Create a dummy client for build time to prevent errors
+const createDummyClient = () => {
+  return {
+    auth: {
+      signUp: () => Promise.resolve({ data: null, error: { message: 'Build time - no auth access' } }),
+      signIn: () => Promise.resolve({ data: null, error: { message: 'Build time - no auth access' } }),
+      signOut: () => Promise.resolve({ error: null }),
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+    },
+    from: () => ({
+      select: () => ({ single: () => Promise.resolve({ data: null, error: { message: 'Build time - no database access' } }) }),
+      insert: () => ({ select: () => ({ single: () => Promise.resolve({ data: null, error: { message: 'Build time - no database access' } }) }) }),
+      update: () => ({ eq: () => ({ select: () => ({ single: () => Promise.resolve({ data: null, error: { message: 'Build time - no database access' } }) }) }) }),
+      delete: () => ({ eq: () => Promise.resolve({ error: { message: 'Build time - no database access' } }) }),
+      eq: () => ({ single: () => Promise.resolve({ data: null, error: { message: 'Build time - no database access' } }) })
+    })
+  } as any
+}
+
+export const supabase = isBuildTime 
+  ? createDummyClient()
+  : createClient(supabaseUrl!, supabaseAnonKey!, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
+    })
 
 // Comprehensive database types for UniVio
 export interface Database {
