@@ -44,7 +44,7 @@ export class EmailService {
         : 'Verify Your Personal Email - UniVio';
 
       const emailData: any = {
-        from: `UniVio <onboarding@resend.dev>`,
+        from: `UniVio <noreply@univio.ai>`,
         to: [to],
         subject,
         html: isEduEmail 
@@ -78,7 +78,7 @@ export class EmailService {
       }
 
       const emailData: any = {
-        from: `UniVio <onboarding@resend.dev>`,
+        from: `UniVio <noreply@univio.ai>`,
         to: [to],
         subject: '🎓 Welcome to UniVio - Your Transfer Journey Begins!',
         html: this.getWelcomeEmailTemplate(firstName, eduEmail),
@@ -110,7 +110,7 @@ export class EmailService {
       }
 
       const emailData: any = {
-        from: `UniVio <onboarding@resend.dev>`,
+        from: `UniVio <noreply@univio.ai>`,
         to: [to],
         subject: '✅ Both Emails Verified - UniVio Account Ready!',
         html: this.getDualVerificationCompleteTemplate(firstName, eduEmail),
