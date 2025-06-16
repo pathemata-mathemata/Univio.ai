@@ -45,13 +45,29 @@ class Settings(BaseSettings):
         """
         # Check if we have Supabase credentials
         if self.SUPABASE_URL and self.POSTGRES_USER and self.POSTGRES_PASSWORD:
-            # Extract database details from Supabase URL
-            supabase_host = self.SUPABASE_URL.replace('https://', '').replace('http://', '')
-            # Construct PostgreSQL connection string for Supabase
-            postgres_url = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@aws-0-us-east-1.pooler.supabase.com:6543/{self.POSTGRES_DB or 'postgres'}"
-            print(f"🔗 Using Supabase PostgreSQL: {postgres_url.split(':')[0]}://{postgres_url.split('@')[0].split(':')[-1]}@****")
+            # Extract the project reference from Supabase URL
+            supabase_ref = self.SUPABASE_URL.replace('https://', '').replace('.supabase.co', '')
+            
+            # Debug information
+            print(f"🔍 Supabase URL: {self.SUPABASE_URL}")
+            print(f"🔍 Project Reference: {supabase_ref}")
+            print(f"🔍 Postgres User: {self.POSTGRES_USER}")
+            print(f"🔍 Postgres DB: {self.POSTGRES_DB or 'postgres'}")
+            
+            # Use direct connection (port 5432) - this is usually more reliable
+            direct_host = f"{supabase_ref}.supabase.co"
+            postgres_url = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{direct_host}:5432/{self.POSTGRES_DB or 'postgres'}"
+            
+            print(f"🔗 Using Supabase PostgreSQL (direct): postgresql://{self.POSTGRES_USER}:****@{direct_host}:5432/{self.POSTGRES_DB or 'postgres'}")
             return postgres_url
         else:
+            # Missing credentials - show what's missing
+            missing = []
+            if not self.SUPABASE_URL: missing.append("SUPABASE_URL")
+            if not self.POSTGRES_USER: missing.append("POSTGRES_USER") 
+            if not self.POSTGRES_PASSWORD: missing.append("POSTGRES_PASSWORD")
+            print(f"❌ Missing Supabase credentials: {', '.join(missing)}")
+            
             # Fallback to SQLite for local development
             sqlite_url = "sqlite:///./course_planning.db"
             print(f"🔗 Using SQLite database (local dev): {sqlite_url}")

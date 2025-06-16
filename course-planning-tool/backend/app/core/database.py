@@ -2,25 +2,48 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Use the dynamic database URL method
 DATABASE_URL = settings.get_database_url()
 print(f"Database URL: {DATABASE_URL.split('@')[0]}@****" if '@' in DATABASE_URL else DATABASE_URL)
 
-# Configure engine based on database type
-if DATABASE_URL.startswith('postgresql'):
-    # PostgreSQL/Supabase configuration
-    engine = create_engine(
-        DATABASE_URL,
-        pool_size=5,
-        max_overflow=10,
-        pool_pre_ping=True,
-        pool_recycle=300,
-        echo=False
-    )
-else:
-    # SQLite configuration
-    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+def create_database_engine(url: str):
+    """Create database engine with appropriate configuration"""
+    if url.startswith('postgresql'):
+        # PostgreSQL/Supabase configuration
+        engine = create_engine(
+            url,
+            pool_size=5,
+            max_overflow=10,
+            pool_pre_ping=True,
+            pool_recycle=300,
+            echo=False,
+            connect_args={
+                "options": "-c timezone=utc"
+            }
+        )
+        # Test the connection immediately
+        try:
+            with engine.connect() as conn:
+                result = conn.execute("SELECT 1")
+                logger.info("✅ PostgreSQL connection test successful")
+        except Exception as e:
+            logger.error(f"❌ PostgreSQL connection test failed: {e}")
+            raise
+        return engine
+    else:
+        # SQLite configuration (only for local development)
+        engine = create_engine(url, connect_args={"check_same_thread": False})
+        logger.info("✅ SQLite connection successful")
+        return engine
+
+# Create the engine - no fallback, must connect to the configured database
+engine = create_database_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -36,4 +59,9 @@ def get_db():
 
 async def create_tables():
     """Create tables if they don't exist"""
-    Base.metadata.create_all(bind=engine) 
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("✅ Database tables created/verified")
+    except Exception as e:
+        logger.error(f"❌ Failed to create tables: {e}")
+        raise 
