@@ -27,6 +27,10 @@ RUN useradd --create-home --shell /bin/bash app \
     && chown -R app:app /app
 USER app
 
+# Set environment variables for Chrome/ChromeDriver
+ENV CHROME_DRIVER_PATH=/usr/bin/chromedriver
+ENV CHROME_BINARY_PATH=/usr/bin/chromium
+
 # Expose port
 EXPOSE 8000
 

@@ -45,7 +45,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-courseplan_user}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-course_planning}
       REDIS_URL: redis://redis:6379
       SECRET_KEY: ${SECRET_KEY}
-      CHROME_DRIVER_PATH: /usr/local/bin/chromedriver
+      CHROME_DRIVER_PATH: /usr/bin/chromedriver
       CORS_ORIGINS: ${CORS_ORIGINS:-"https://yourdomain.com"}
       ENVIRONMENT: production
       # Chrome options for headless operation
