@@ -23,11 +23,15 @@ type UserCourse = Database['public']['Tables']['user_courses']['Row']
 type UserCourseInsert = Database['public']['Tables']['user_courses']['Insert']
 type UserCourseUpdate = Database['public']['Tables']['user_courses']['Update']
 
-// Note: These tables don't exist in our current minimal schema
-// Will be added later when we expand the database
-// type TransferRequirement = Database['public']['Tables']['transfer_requirements']['Row']
-// type AIPlanningSession = Database['public']['Tables']['ai_planning_sessions']['Row']
-// type DashboardMetrics = Database['public']['Tables']['dashboard_metrics']['Row']
+// Additional types for tables that exist in the schema
+type AIPlanningSession = Database['public']['Tables']['ai_planning_sessions']['Row']
+type AIPlanningSessionInsert = Database['public']['Tables']['ai_planning_sessions']['Insert']
+
+type DashboardMetrics = Database['public']['Tables']['dashboard_metrics']['Row']
+type DashboardMetricsInsert = Database['public']['Tables']['dashboard_metrics']['Insert']
+
+type UserActivityLog = Database['public']['Tables']['user_activity_log']['Row']
+type UserActivityLogInsert = Database['public']['Tables']['user_activity_log']['Insert']
 
 export class DatabaseService {
   // ===== USER OPERATIONS =====

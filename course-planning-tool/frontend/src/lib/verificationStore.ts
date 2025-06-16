@@ -95,7 +95,7 @@ class VerificationStore {
     const now = Date.now();
     let cleaned = 0;
     
-    for (const [email, data] of this.store.entries()) {
+    for (const [email, data] of Array.from(this.store.entries())) {
       if (data.expires < now) {
         this.store.delete(email);
         cleaned++;
@@ -112,7 +112,7 @@ class VerificationStore {
     const now = Date.now();
     let expired = 0;
     
-    for (const data of this.store.values()) {
+    for (const data of Array.from(this.store.values())) {
       if (data.expires < now) expired++;
     }
     
