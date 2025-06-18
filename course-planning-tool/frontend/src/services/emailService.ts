@@ -19,6 +19,12 @@ interface WelcomeEmailData {
   eduEmail?: string;
 }
 
+interface PasswordResetEmailData {
+  to: string;
+  resetUrl: string;
+  firstName?: string;
+}
+
 export class EmailService {
   /**
    * Get logo URL for emails - using a reliable public URL
@@ -128,6 +134,38 @@ export class EmailService {
       return { success: true, messageId: data?.id };
     } catch (error) {
       console.error('❌ Dual verification email service error:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Send password reset email
+   */
+  static async sendPasswordResetEmail({ to, resetUrl, firstName }: PasswordResetEmailData) {
+    try {
+      if (!resend) {
+        return { success: false, error: 'Email service not available - missing API key' };
+      }
+
+      const emailData: any = {
+        from: `UniVio <noreply@univio.ai>`,
+        to: [to],
+        subject: '🔒 Reset Your UniVio Password',
+        html: this.getPasswordResetEmailTemplate(resetUrl, firstName),
+        text: `Hi ${firstName || 'there'}! Click this link to reset your UniVio password: ${resetUrl}. This link will expire in 1 hour for security.`,
+      };
+
+      const { data, error } = await resend.emails.send(emailData);
+
+      if (error) {
+        console.error('❌ Password reset email error:', error);
+        return { success: false, error: error.message };
+      }
+
+      console.log('✅ Password reset email sent successfully:', data);
+      return { success: true, messageId: data?.id };
+    } catch (error) {
+      console.error('❌ Password reset email service error:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -531,6 +569,127 @@ export class EmailService {
           <p style="color: #607589; margin: 0; font-size: 12px;">
             Your transfer success is our mission.
           </p>
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+  }
+
+  /**
+   * HTML template for password reset email
+   */
+  private static getPasswordResetEmailTemplate(resetUrl: string, firstName?: string): string {
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reset Your Password - UniVio</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8f9fa;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 40px 30px; text-align: center;">
+          <!-- Logo -->
+          <div style="margin-bottom: 20px;">
+            <div style="background: linear-gradient(135deg, #FFE066 0%, #FCD34D 100%); color: #1E3A5F; padding: 15px 25px; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 24px; letter-spacing: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              UNIVIO.AI
+            </div>
+          </div>
+          <div style="font-size: 48px; margin-bottom: 10px;">🔒</div>
+          <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">Password Reset Request</h1>
+          <p style="color: #fecaca; margin: 10px 0 0 0; font-size: 16px;">Secure your account with a new password</p>
+        </div>
+
+        <!-- Content -->
+        <div style="padding: 40px 30px;">
+          <h2 style="color: #111416; margin: 0 0 20px 0; font-size: 24px;">
+            ${firstName ? `Hi ${firstName}!` : 'Hi there!'}
+          </h2>
+          
+          <p style="color: #607589; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+            We received a request to reset the password for your UniVio account. If you made this request, click the button below to create a new password.
+          </p>
+
+          <!-- Security Alert -->
+          <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin: 30px 0;">
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+              <span style="font-size: 20px; margin-right: 10px;">⚠️</span>
+              <h4 style="color: #dc2626; margin: 0; font-size: 16px;">Security Notice</h4>
+            </div>
+            <p style="color: #991b1b; margin: 0; font-size: 14px;">
+              If you didn't request this password reset, please ignore this email. Your account remains secure and no changes will be made.
+            </p>
+          </div>
+
+          <!-- Reset Button -->
+          <div style="text-align: center; margin: 40px 0;">
+            <a href="${resetUrl}" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+              Reset My Password
+            </a>
+          </div>
+
+          <!-- Instructions -->
+          <div style="background: linear-gradient(135deg, #e8f4fd 0%, #f0f9ff 100%); border-radius: 8px; padding: 30px; margin: 30px 0;">
+            <h3 style="color: #1E3A5F; margin: 0 0 15px 0; font-size: 18px;">🔐 What happens next?</h3>
+            <div style="space-y: 10px;">
+              <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                <div style="background-color: #2B4F7D; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; margin-right: 12px; flex-shrink: 0; margin-top: 2px;">1</div>
+                <p style="color: #607589; margin: 0; font-size: 14px;">Click the "Reset My Password" button above</p>
+              </div>
+              <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                <div style="background-color: #2B4F7D; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; margin-right: 12px; flex-shrink: 0; margin-top: 2px;">2</div>
+                <p style="color: #607589; margin: 0; font-size: 14px;">Create a strong, unique password</p>
+              </div>
+              <div style="display: flex; align-items: flex-start;">
+                <div style="background-color: #2B4F7D; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; margin-right: 12px; flex-shrink: 0; margin-top: 2px;">3</div>
+                <p style="color: #607589; margin: 0; font-size: 14px;">Sign in to UniVio with your new password</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Expiration Notice -->
+          <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 20px; margin: 30px 0;">
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 18px; margin-right: 8px;">⏰</span>
+              <h4 style="color: #d97706; margin: 0; font-size: 14px; font-weight: bold;">This link expires in 1 hour</h4>
+            </div>
+            <p style="color: #92400e; margin: 0; font-size: 13px;">
+              For security reasons, this password reset link will expire in 1 hour. If you need a new link, you can request another one from the login page.
+            </p>
+          </div>
+
+          <!-- Alternative Text Link -->
+          <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 30px 0;">
+            <p style="color: #607589; margin: 0 0 10px 0; font-size: 14px; font-weight: bold;">
+              Can't click the button? Copy and paste this link into your browser:
+            </p>
+            <p style="color: #2B4F7D; margin: 0; font-size: 12px; word-break: break-all; font-family: 'Courier New', monospace; background-color: white; padding: 10px; border-radius: 4px; border: 1px solid #e5e8ea;">
+              ${resetUrl}
+            </p>
+          </div>
+
+          <p style="color: #607589; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0; text-align: center;">
+            Need help? Contact our support team at <a href="mailto:support@univio.ai" style="color: #2B4F7D;">support@univio.ai</a>
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e5e8ea;">
+          <p style="color: #607589; margin: 0 0 10px 0; font-size: 14px;">
+            © 2024 UniVio. All rights reserved.
+          </p>
+          <p style="color: #607589; margin: 0; font-size: 12px;">
+            This email was sent because a password reset was requested for your UniVio account.
+          </p>
+          <div style="margin-top: 20px;">
+            <a href="https://univio.ai" style="color: #607589; text-decoration: none; margin: 0 10px; font-size: 12px;">Website</a>
+            <a href="https://univio.ai/help" style="color: #607589; text-decoration: none; margin: 0 10px; font-size: 12px;">Help</a>
+            <a href="https://univio.ai/privacy" style="color: #607589; text-decoration: none; margin: 0 10px; font-size: 12px;">Privacy</a>
+          </div>
         </div>
       </div>
     </body>
