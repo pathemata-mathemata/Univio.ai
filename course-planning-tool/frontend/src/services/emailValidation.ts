@@ -1,40 +1,5 @@
-// Abstract Email Validation API Service
-// Make sure to add your Abstract API key to environment variables
-
-interface AbstractEmailValidationResponse {
-  email: string;
-  autocorrect: string;
-  deliverability: 'DELIVERABLE' | 'UNDELIVERABLE' | 'RISKY' | 'UNKNOWN';
-  quality_score: number;
-  is_valid_format: {
-    value: boolean;
-    text: string;
-  };
-  is_free_email: {
-    value: boolean;
-    text: string;
-  };
-  is_disposable_email: {
-    value: boolean;
-    text: string;
-  };
-  is_role_email: {
-    value: boolean;
-    text: string;
-  };
-  is_catchall_email: {
-    value: boolean;
-    text: string;
-  };
-  is_mx_found: {
-    value: boolean | null;
-    text: string;
-  };
-  is_smtp_valid: {
-    value: boolean | null;
-    text: string;
-  };
-}
+// Simple Email Validation Service for Resend Integration
+// No external APIs required - uses local validation + Resend verification
 
 interface EmailValidationResult {
   isValid: boolean;
@@ -48,20 +13,37 @@ interface EmailValidationResult {
 }
 
 class EmailValidationService {
-  private apiKey: string;
-  private baseUrl = 'https://emailvalidation.abstractapi.com/v1/';
+  // Common disposable email domains
+  private disposableDomains = new Set([
+    '10minutemail.com', 'tempmail.org', 'guerrillamail.com', 'mailinator.com',
+    'throwaway.email', 'temp-mail.org', 'yopmail.com', 'getnada.com',
+    'maildrop.cc', 'sharklasers.com', 'guerrillamail.info', 'guerrillamail.net',
+    'guerrillamail.org', 'guerrillamail.biz', 'spam4.me', 'grr.la',
+    'guerrillamailblock.com', 'pokemail.net', 'spamherald.com', 'spamthisplease.com'
+  ]);
 
-  constructor() {
-    // In production, use environment variables
-    this.apiKey = process.env.NEXT_PUBLIC_ABSTRACT_API_KEY || '';
-    
-    if (!this.apiKey) {
-      console.warn('Abstract API key not found. Email validation will use fallback validation.');
-    }
-  }
+  // Common free email providers
+  private freeEmailDomains = new Set([
+    'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
+    'icloud.com', 'protonmail.com', 'mail.com', 'zoho.com', 'yandex.com',
+    'live.com', 'msn.com', 'yahoo.co.uk', 'googlemail.com'
+  ]);
+
+  // Common typos and their corrections
+  private commonTypos: Record<string, string> = {
+    'gmai.com': 'gmail.com',
+    'gmial.com': 'gmail.com',
+    'gmail.co': 'gmail.com',
+    'yahooo.com': 'yahoo.com',
+    'yahoo.co': 'yahoo.com',
+    'hotmial.com': 'hotmail.com',
+    'hotmai.com': 'hotmail.com',
+    'outlok.com': 'outlook.com',
+    'outloo.com': 'outlook.com'
+  };
 
   /**
-   * Validate email using Hunter.io API - REAL DATA ONLY
+   * Basic email validation without external APIs
    */
   async validateEmail(email: string): Promise<EmailValidationResult> {
     if (!email || typeof email !== 'string') {
@@ -70,41 +52,67 @@ class EmailValidationService {
 
     const trimmedEmail = email.trim().toLowerCase();
     
-    if (!this.apiKey) {
-      throw new Error('Hunter.io API key not configured - email validation unavailable');
+    // Basic format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      return {
+        isValid: false,
+        isEduEmail: false,
+        isDisposable: false,
+        isFreeEmail: false,
+        deliverability: 'INVALID',
+        qualityScore: 0,
+        errorMessage: 'Please enter a valid email address'
+      };
     }
 
-    try {
-      const response = await fetch(
-        `https://api.hunter.io/v2/email-verifier?email=${encodeURIComponent(trimmedEmail)}&api_key=${this.apiKey}`
-      );
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Hunter.io API authentication failed');
-        } else if (response.status === 429) {
-          throw new Error('Hunter.io API rate limit exceeded');
-        } else {
-          throw new Error(`Hunter.io API error: ${response.status}`);
-        }
-      }
-
-      const data = await response.json();
-      
-      if (data.errors) {
-        throw new Error(`Hunter.io API error: ${data.errors[0]?.details || 'Unknown error'}`);
-      }
-
-      return this.parseHunterResponse(data.data);
-
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('Hunter.io')) {
-        // Re-throw Hunter.io specific errors
-        throw error;
-      }
-      // For network or other errors, throw a descriptive error
-      throw new Error(`Email validation service unavailable: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    const domain = trimmedEmail.split('@')[1];
+    
+    // Check for common typos
+    if (this.commonTypos[domain]) {
+      return {
+        isValid: false,
+        isEduEmail: false,
+        isDisposable: false,
+        isFreeEmail: false,
+        deliverability: 'INVALID',
+        qualityScore: 0,
+        suggestions: trimmedEmail.replace(domain, this.commonTypos[domain]),
+        errorMessage: `Did you mean ${this.commonTypos[domain]}?`
+      };
     }
+
+    const isEduEmail = this.isEducationalEmail(trimmedEmail);
+    const isDisposable = this.disposableDomains.has(domain);
+    const isFreeEmail = this.freeEmailDomains.has(domain);
+
+    // Block disposable emails
+    if (isDisposable) {
+      return {
+        isValid: false,
+        isEduEmail,
+        isDisposable: true,
+        isFreeEmail,
+        deliverability: 'UNDELIVERABLE',
+        qualityScore: 0,
+        errorMessage: 'Disposable email addresses are not allowed'
+      };
+    }
+
+    // Calculate quality score
+    let qualityScore = 0.7; // Base score
+    if (isEduEmail) qualityScore += 0.2;
+    if (!isFreeEmail) qualityScore += 0.1;
+    qualityScore = Math.min(qualityScore, 1.0);
+
+    return {
+      isValid: true,
+      isEduEmail,
+      isDisposable: false,
+      isFreeEmail,
+      deliverability: 'DELIVERABLE',
+      qualityScore,
+    };
   }
 
   /**
@@ -113,9 +121,19 @@ class EmailValidationService {
   async validateEduEmail(email: string): Promise<EmailValidationResult & { isStudentEmail: boolean }> {
     const result = await this.validateEmail(email);
     
+    if (!result.isValid) {
+      return {
+        ...result,
+        isStudentEmail: false
+      };
+    }
+
+    // For .edu emails, we're more permissive since verification happens via Resend
+    const isStudentEmail = result.isEduEmail && result.isValid && !result.isDisposable;
+    
     return {
       ...result,
-      isStudentEmail: result.isEduEmail && result.isValid && !result.isDisposable
+      isStudentEmail
     };
   }
 
@@ -125,7 +143,14 @@ class EmailValidationService {
   async validatePersonalEmail(email: string): Promise<EmailValidationResult & { isRecommended: boolean }> {
     const result = await this.validateEmail(email);
     
-    // Personal emails should be valid, not disposable, and ideally not role-based
+    if (!result.isValid) {
+      return {
+        ...result,
+        isRecommended: false
+      };
+    }
+
+    // Personal emails should be valid, not disposable, and ideally not .edu
     const isRecommended = result.isValid && 
                          !result.isDisposable && 
                          !result.isEduEmail &&
@@ -149,30 +174,19 @@ class EmailValidationService {
     const eduPatterns = [
       /\.edu$/,           // .edu domains
       /\.edu\./,          // .edu subdomains
-      /\.ac\./,           // Academic domains
+      /\.ac\./,           // Academic domains (international)
       /\.k12\./,          // K-12 schools
       /college\.edu$/,
       /university\.edu$/,
-      /school\.edu$/
+      /school\.edu$/,
+      // Add some specific known educational domains
+      /\.ac\.uk$/,        // UK academic
+      /\.edu\.au$/,       // Australian education
+      /\.edu\.ca$/,       // Canadian education
     ];
 
     return eduPatterns.some(pattern => pattern.test(domain));
   }
-
-  private parseHunterResponse(data: any): EmailValidationResult {
-    return {
-      isValid: data.result === 'deliverable',
-      isEduEmail: this.isEducationalEmail(data.email || ''),
-      isDisposable: data.disposable || false,
-      isFreeEmail: data.webmail || false,
-      deliverability: data.result === 'deliverable' ? 'DELIVERABLE' : 
-                      data.result === 'undeliverable' ? 'UNDELIVERABLE' : 'UNKNOWN',
-      qualityScore: data.score || 0,
-      errorMessage: data.result === 'deliverable' ? undefined : 'Email validation failed'
-    };
-  }
-
-  
 }
 
 // Export singleton instance
