@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -15,40 +16,62 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const checkAuth = () => {
-      // Check for access token in localStorage
-      const token = localStorage.getItem('access_token');
-      
-      if (!token) {
-        // Store the current path to redirect back after login
-        const currentPath = window.location.pathname;
-        if (currentPath !== '/auth/login' && currentPath !== '/auth/register') {
-          localStorage.setItem('redirect_after_login', currentPath);
-        }
+    const checkAuth = async () => {
+      try {
+        // Check Supabase session
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        // Redirect to login page
+        if (error || !session) {
+          // Store the current path to redirect back after login
+          const currentPath = window.location.pathname;
+          if (currentPath !== '/auth/login' && currentPath !== '/auth/register') {
+            localStorage.setItem('redirect_after_login', currentPath);
+          }
+          
+          // Clean up any stale tokens
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('supabase_session');
+          
+          // Redirect to login page
+          router.push('/auth/login');
+          setIsLoading(false);
+          return;
+        }
+
+        // Valid session exists
+        setIsAuthenticated(true);
+        
+        // Update stored session
+        localStorage.setItem('supabase_session', JSON.stringify(session));
+        localStorage.setItem('access_token', session.access_token);
+        
+        console.log('✅ User authenticated:', session.user.email);
+        
+      } catch (error) {
+        console.error('Auth check error:', error);
         router.push('/auth/login');
+      } finally {
         setIsLoading(false);
-        return;
       }
-
-      // TODO: Validate token with backend in production
-      // For now, we'll assume any token is valid
-      // In production, you would:
-      // const response = await fetch('/api/v1/auth/me', {
-      //   headers: { Authorization: `Bearer ${token}` }
-      // });
-      // if (!response.ok) {
-      //   localStorage.removeItem('access_token');
-      //   router.push('/auth/login');
-      //   return;
-      // }
-
-      setIsAuthenticated(true);
-      setIsLoading(false);
     };
 
     checkAuth();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        setIsAuthenticated(false);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('supabase_session');
+        router.push('/auth/login');
+      } else if (event === 'SIGNED_IN' && session) {
+        setIsAuthenticated(true);
+        localStorage.setItem('supabase_session', JSON.stringify(session));
+        localStorage.setItem('access_token', session.access_token);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [router]);
 
   if (isLoading) {

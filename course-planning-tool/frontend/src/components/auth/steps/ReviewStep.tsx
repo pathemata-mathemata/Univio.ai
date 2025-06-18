@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, AlertCircle, Loader2, User, Mail, GraduationCap, Target } from 'lucide-react';
 import { RegistrationData } from '../MultiStepRegistration';
+import { supabase } from '@/lib/supabase';
 
 interface ReviewStepProps {
   data: RegistrationData;
@@ -25,48 +26,59 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
     setErrorMessage('');
 
     try {
-      // Prepare registration payload for backend
-      const registrationPayload = {
+      console.log('🚀 Creating Supabase user account...');
+      
+      // Step 1: Create Supabase auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.personalEmail,
         password: data.password,
-        name: `${data.firstName} ${data.lastName}`,
-        eduEmail: data.eduEmail,
-        eduEmailVerified: data.eduEmailVerified,
-        profile: {
-          currentInstitution: data.currentInstitution,
-          currentMajor: data.currentMajor,
-          currentQuarter: data.currentQuarter.toLowerCase(),
-          currentYear: parseInt(data.currentYear),
-          expectedTransferYear: parseInt(data.expectedTransferYear),
-          expectedTransferQuarter: data.expectedTransferQuarter.toLowerCase(),
-          targetInstitution: data.targetInstitution,
-          targetMajor: data.targetMajor,
+        options: {
+          data: {
+            first_name: data.firstName,
+            last_name: data.lastName,
+            edu_email: data.eduEmail,
+            edu_email_verified: data.eduEmailVerified,
+          }
         }
-      };
-
-      console.log('🚀 Sending registration request to backend...');
-      
-      // Call the backend registration endpoint
-      const response = await fetch('/api/v1/auth/register-extended', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(registrationPayload)
       });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.detail || result.error || 'Registration failed');
+      if (authError) {
+        throw new Error(authError.message);
       }
 
-      console.log('✅ Registration successful:', result);
+      if (!authData.user) {
+        throw new Error('Failed to create user account');
+      }
 
-      // Store the authentication token
-      if (result.access_token) {
-        localStorage.setItem('access_token', result.access_token);
-        localStorage.setItem('authToken', result.access_token); // For compatibility
+      console.log('✅ Supabase user created:', authData.user.email);
+
+      // Step 2: Create user profile in database
+      const { error: profileError } = await supabase
+        .from('academic_profiles')
+        .insert({
+          user_id: authData.user.id,
+          current_institution_name: data.currentInstitution,
+          current_major_name: data.currentMajor,
+          current_quarter: data.currentQuarter.toLowerCase(),
+          current_year: parseInt(data.currentYear),
+          expected_transfer_year: parseInt(data.expectedTransferYear),
+          expected_transfer_quarter: data.expectedTransferQuarter.toLowerCase(),
+          target_institution_name: data.targetInstitution,
+          target_major_name: data.targetMajor,
+          is_complete: true,
+        });
+
+      if (profileError) {
+        console.warn('⚠️ Profile creation failed, but user was created:', profileError);
+        // Don't fail the registration if profile creation fails
+      } else {
+        console.log('✅ Academic profile created successfully');
+      }
+
+      // Step 3: Store session info
+      if (authData.session) {
+        localStorage.setItem('supabase_session', JSON.stringify(authData.session));
+        localStorage.setItem('access_token', authData.session.access_token);
       }
 
       setRegistrationStatus('success');
@@ -74,7 +86,7 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
       // Redirect to intended page or dashboard after successful registration
       setTimeout(() => {
         const redirectPath = localStorage.getItem('redirect_after_login');
-        localStorage.removeItem('redirect_after_login'); // Clean up
+        localStorage.removeItem('redirect_after_login');
         router.push(redirectPath || '/dashboard');
       }, 2000);
       

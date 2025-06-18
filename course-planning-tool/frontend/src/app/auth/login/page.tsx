@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,34 +36,29 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // Call the real backend API for authentication
-      const response = await fetch('/api/v1/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          username: formData.email,
-          password: formData.password,
-        })
+      // Use Supabase auth directly
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Login failed');
+
+      if (authError) {
+        throw new Error(authError.message);
       }
-      
-      const result = await response.json();
-      
-      // Store the real access token
-      if (result.access_token) {
-        localStorage.setItem('access_token', result.access_token);
-        localStorage.setItem('authToken', result.access_token); // For compatibility
+
+      if (data.session) {
+        // Store Supabase session
+        localStorage.setItem('supabase_session', JSON.stringify(data.session));
+        localStorage.setItem('access_token', data.session.access_token);
+        
+        console.log('✅ Supabase login successful:', data.user?.email);
+        
+        // Check for redirect path and go there, otherwise go to dashboard
+        const redirectPath = localStorage.getItem('redirect_after_login');
+        localStorage.removeItem('redirect_after_login');
+        
+        router.push(redirectPath || '/dashboard');
       }
-      
-      // Check for redirect path and go there, otherwise go to dashboard
-      const redirectPath = localStorage.getItem('redirect_after_login');
-      localStorage.removeItem('redirect_after_login'); // Clean up
-      
-      router.push(redirectPath || '/dashboard');
       
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Invalid email or password. Please try again.');
