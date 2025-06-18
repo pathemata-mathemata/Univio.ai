@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
@@ -30,7 +30,7 @@ def create_database_engine(url: str):
         # Test the connection immediately - but make it non-blocking for startup
         try:
             with engine.connect() as conn:
-                result = conn.execute("SELECT 1")
+                result = conn.execute(text("SELECT 1"))
                 logger.info("✅ PostgreSQL connection test successful")
         except Exception as e:
             logger.error(f"❌ PostgreSQL connection test failed: {e}")

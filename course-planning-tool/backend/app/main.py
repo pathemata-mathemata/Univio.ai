@@ -14,13 +14,18 @@ setup_logging()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    try:
-        await create_tables()
-    except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"❌ Failed to create database tables during startup: {e}")
-        logger.warning("⚠️ Application will start but database features may not work")
+    # Note: Skipping table creation - using existing Supabase tables
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info("🚀 Using existing Supabase database tables")
+    
+    # Uncomment this if you need to create new tables:
+    # try:
+    #     await create_tables()
+    # except Exception as e:
+    #     logger.error(f"❌ Failed to create database tables during startup: {e}")
+    #     logger.warning("⚠️ Application will start but database features may not work")
+    
     yield
     # Shutdown
     pass
@@ -80,8 +85,9 @@ async def health_check():
     
     # Test database connection
     try:
+        from sqlalchemy import text
         with engine.connect() as conn:
-            result = conn.execute("SELECT 1")
+            result = conn.execute(text("SELECT 1"))
             health_status["database"] = "connected"
     except Exception as e:
         logger.warning(f"Database health check failed: {e}")
