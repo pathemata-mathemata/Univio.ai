@@ -6,7 +6,7 @@ from datetime import timedelta
 from app.core.database import get_db
 from app.core.security import create_access_token, verify_password, get_password_hash
 from app.core.config import settings
-from app.models.user import User
+# from app.models.user import User  # Using Supabase Auth instead
 from app.schemas.user import (
     UserCreate, UserCreateExtended, UserLogin, 
     TokenResponse, TokenResponseExtended, UserResponse, UserResponseExtended,
@@ -23,35 +23,10 @@ async def register(
     db: Session = Depends(get_db)
 ):
     """Register a new user (original endpoint for backwards compatibility)"""
-    # Check if user already exists
-    existing_user = db.query(User).filter(User.email == user_data.email).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email already exists"
-        )
-    
-    # Create new user
-    hashed_password = get_password_hash(user_data.password)
-    user = User(
-        email=user_data.email,
-        name=user_data.name,
-        hashed_password=hashed_password
-    )
-    
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    
-    # Create access token
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": str(user.id)}, expires_delta=access_token_expires
-    )
-    
-    return TokenResponse(
-        access_token=access_token,
-        user=UserResponse.from_orm(user)
+    # TODO: Update to use Supabase Auth
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail="This endpoint is being migrated to use Supabase Auth. Use frontend registration instead."
     )
 
 @router.post("/register-extended", response_model=TokenResponseExtended)
