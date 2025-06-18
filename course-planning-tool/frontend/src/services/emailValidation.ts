@@ -150,11 +150,11 @@ class EmailValidationService {
       };
     }
 
-    // Personal emails should be valid, not disposable, and ideally not .edu
+    // For personal emails, free email providers (Gmail, Yahoo, etc.) are perfectly acceptable
+    // Only block disposable emails and .edu emails (since personal should be different from student email)
     const isRecommended = result.isValid && 
                          !result.isDisposable && 
-                         !result.isEduEmail &&
-                         result.qualityScore > 0.7;
+                         !result.isEduEmail;
     
     return {
       ...result,

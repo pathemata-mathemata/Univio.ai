@@ -335,19 +335,84 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
         </div>
       </div>
 
-      {/* Terms and Conditions */}
-      <div className="p-4 bg-[#f8f9fa] border border-[#dbe0e5] rounded-lg">
-        <div className="flex items-start gap-3">
-          <input 
-            type="checkbox" 
-            id="terms" 
-            className="mt-1 h-4 w-4 text-[#0c7ff2] rounded border-[#dbe0e5]" 
-            defaultChecked 
-          />
-          <label htmlFor="terms" className="text-sm text-[#607589]">
-            I agree to the <a href="#" className="text-[#0c7ff2] hover:underline">Terms of Service</a> and <a href="#" className="text-[#0c7ff2] hover:underline">Privacy Policy</a>. 
-            I understand that my educational information will be used to provide personalized transfer planning services.
-          </label>
+      {/* Terms and Privacy Policy */}
+      <div className="space-y-4 p-6 border border-[#dbe0e5] rounded-lg">
+        <div className="flex items-center gap-2 mb-4">
+          <Target className="w-5 h-5 text-[#0c7ff2]" />
+          <h3 className="font-semibold text-[#111416]">Terms of Service & Privacy Policy</h3>
+        </div>
+        
+        <div className="space-y-4 text-sm text-[#607589]">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-semibold text-[#111416] mb-2">🔒 Your Data Protection Rights (California Law Compliant)</h4>
+            <ul className="space-y-1 text-xs">
+              <li><strong>Right to Know:</strong> You have the right to know what personal information we collect and how we use it.</li>
+              <li><strong>Right to Delete:</strong> You can request deletion of your personal information at any time through your account settings or by contacting us.</li>
+              <li><strong>Right to Correct:</strong> You can update or correct your personal information through your account dashboard.</li>
+              <li><strong>Right to Opt-Out:</strong> You can opt-out of data sharing for marketing purposes (we don't sell your data).</li>
+              <li><strong>Right to Non-Discrimination:</strong> We will not discriminate against you for exercising your privacy rights.</li>
+            </ul>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <h4 className="font-semibold text-[#111416] mb-2">🛡️ How We Protect Your Information</h4>
+            <ul className="space-y-1 text-xs">
+              <li><strong>Secure Storage:</strong> Your data is encrypted and stored on secure servers with enterprise-grade security.</li>
+              <li><strong>Limited Access:</strong> Only authorized personnel can access your information for legitimate purposes.</li>
+              <li><strong>No Data Selling:</strong> We never sell, rent, or trade your personal information to third parties.</li>
+              <li><strong>Educational Purpose Only:</strong> Your academic information is used solely to provide transfer planning services.</li>
+              <li><strong>FERPA Compliant:</strong> We follow educational privacy standards for handling student information.</li>
+            </ul>
+          </div>
+
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h4 className="font-semibold text-[#111416] mb-2">📊 What Information We Collect & Why</h4>
+            <ul className="space-y-1 text-xs">
+              <li><strong>Personal Information:</strong> Name, email addresses for account creation and communication.</li>
+              <li><strong>Academic Information:</strong> Institution, major, GPA, transfer goals to provide personalized planning.</li>
+              <li><strong>Usage Data:</strong> How you use our platform to improve our services (anonymized).</li>
+              <li><strong>Communication Records:</strong> Support interactions to help resolve issues and improve service.</li>
+            </ul>
+          </div>
+
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h4 className="font-semibold text-[#111416] mb-2">⚠️ Important Information</h4>
+            <ul className="space-y-1 text-xs">
+              <li><strong>Data Retention:</strong> We keep your data as long as your account is active or as needed to provide services.</li>
+              <li><strong>Account Deletion:</strong> You can permanently delete your account and all associated data at any time.</li>
+              <li><strong>Service Interruption:</strong> We may temporarily suspend service for maintenance or security updates.</li>
+              <li><strong>Changes to Terms:</strong> We'll notify you of any significant changes to our terms or privacy policy.</li>
+              <li><strong>Contact Us:</strong> Reach out to privacy@univio.ai for any data protection concerns.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t pt-4">
+          <div className="flex items-start gap-3">
+            <input 
+              type="checkbox" 
+              id="terms" 
+              className="mt-1 h-4 w-4 text-[#0c7ff2] rounded border-[#dbe0e5]" 
+              required
+            />
+            <label htmlFor="terms" className="text-sm text-[#607589] leading-relaxed">
+              <strong>I agree to UniVio's Terms of Service and Privacy Policy.</strong> I understand that:
+              <br />• My educational information will be used exclusively to provide personalized transfer planning services
+              <br />• I have the right to access, correct, or delete my personal data at any time
+              <br />• UniVio will protect my information according to California privacy laws (CCPA/CPRA)
+              <br />• I can withdraw consent and delete my account at any time through account settings
+              <br />• UniVio does not sell or rent personal information to third parties
+              <br />
+              <span className="text-[#0c7ff2]">
+                By checking this box, I consent to the collection and use of my information as described above.
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-600">
+          <p><strong>California Residents:</strong> This privacy notice complies with the California Consumer Privacy Act (CCPA) and California Privacy Rights Act (CPRA). 
+          For questions about your privacy rights or to exercise them, contact us at privacy@univio.ai or through your account settings.</p>
         </div>
       </div>
 

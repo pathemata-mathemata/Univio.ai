@@ -368,10 +368,10 @@ export function PersonalEmailStep({ data, updateData, onNext, onPrev, isLoading 
                   <span>This appears to be a disposable email. Consider using a permanent address.</span>
                 </div>
               )}
-              {emailValidationResult.isFreeEmail && (
+              {emailValidationResult.isEduEmail && (
                 <div className="flex items-center text-sm text-orange-600">
                   <AlertTriangle className="w-4 h-4 mr-1 flex-shrink-0" />
-                  <span>Free email detected. Consider using a professional email address.</span>
+                  <span>Please use a different email address - this appears to be your student email.</span>
                 </div>
               )}
               {emailValidationResult.deliverability === 'RISKY' && (
