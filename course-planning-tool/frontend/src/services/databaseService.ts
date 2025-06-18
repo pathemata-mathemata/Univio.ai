@@ -133,7 +133,8 @@ export class DatabaseService {
   // ===== EMAIL VERIFICATION OPERATIONS =====
 
   /**
-   * Store email verification code
+   * Store email verification code with proper rate limiting
+   * Rate limits: Max 2 codes in 30 seconds, Max 5 codes per hour
    */
   static async storeVerificationCode(
     email: string, 
@@ -141,24 +142,46 @@ export class DatabaseService {
     expiryMinutes: number
   ): Promise<{ success: boolean; error: string | null }> {
     try {
-      // Check if there's a recent code for this email
-      const { data: existing } = await supabaseAdmin
-        .from('email_verifications')
-        .select('*')
-        .eq('email', email)
-        .gt('expires_at', new Date().toISOString())
-        .single()
+      const now = new Date()
+      const thirtySecondsAgo = new Date(now.getTime() - 30 * 1000)
+      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
 
-      if (existing) {
-        const timeLeft = Math.ceil((new Date(existing.expires_at).getTime() - Date.now()) / 1000 / 60)
-        return { success: false, error: `Please wait ${timeLeft} minutes before requesting a new code` }
+      // Check rate limits
+      const { data: recentCodes } = await supabaseAdmin
+        .from('email_verifications')
+        .select('created_at')
+        .eq('email', email)
+        .gte('created_at', thirtySecondsAgo.toISOString())
+        .order('created_at', { ascending: false })
+
+      const { data: hourlyCount } = await supabaseAdmin
+        .from('email_verifications')
+        .select('id', { count: 'exact' })
+        .eq('email', email)
+        .gte('created_at', oneHourAgo.toISOString())
+
+      // Rate limit: Max 2 codes in 30 seconds
+      if (recentCodes && recentCodes.length >= 2) {
+        return { 
+          success: false, 
+          error: 'Too many requests. Please wait 30 seconds before requesting another code.' 
+        }
       }
 
-      // Delete any old codes for this email
+      // Rate limit: Max 5 codes per hour
+      if (hourlyCount && hourlyCount.length >= 5) {
+        return { 
+          success: false, 
+          error: 'Hourly limit reached. Please wait before requesting more verification codes.' 
+        }
+      }
+
+      // Clean up expired codes for this email
       await supabaseAdmin
         .from('email_verifications')
         .delete()
         .eq('email', email)
+        .lt('expires_at', now.toISOString())
 
       // Create new verification code
       const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000).toISOString()
@@ -168,7 +191,9 @@ export class DatabaseService {
         .insert({
           email,
           code,
-          expires_at: expiresAt
+          expires_at: expiresAt,
+          attempts: 0,
+          verified: false
         })
 
       if (error) {
