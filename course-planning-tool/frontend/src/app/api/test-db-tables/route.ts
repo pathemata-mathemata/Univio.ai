@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase-server';
+import { supabaseAdmin } from '@/lib/supabase-server';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Testing database tables and schemas...');
 
-    // Test 1: Check auth.users (this should always exist)
-    const { data: authUsers, error: authError } = await supabase.auth.getUser();
-    console.log('Auth status:', authUsers ? 'Connected' : 'Not connected');
-
-    // Test 2: Try to query each table the registration uses
+    // Test 1: Try to query each table the registration uses
     const tables = [
       'users',
       'email_verifications', 
@@ -19,13 +15,13 @@ export async function GET(request: NextRequest) {
     ];
 
     const results: any = {
-      auth_connection: authUsers ? 'Connected' : 'Not connected',
+      database_connection: 'Testing...',
       tables: {}
     };
 
     for (const table of tables) {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
           .from(table)
           .select('*')
           .limit(1);
@@ -39,7 +35,8 @@ export async function GET(request: NextRequest) {
         } else {
           results.tables[table] = {
             exists: true,
-            sample_count: data?.length || 0
+            sample_count: data?.length || 0,
+            status: 'accessible'
           };
         }
       } catch (err) {
@@ -50,17 +47,22 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Test 3: Check what tables DO exist
+    // Test 2: Check auth.users table (Supabase built-in)
     try {
-      const { data: schemaData, error: schemaError } = await supabase
-        .rpc('get_schema_info');
-      
-      if (schemaData) {
-        results.available_tables = schemaData;
-      }
+      const { data: authUsers, error: authError } = await supabaseAdmin.auth.admin.listUsers();
+      results.auth_users = {
+        accessible: !authError,
+        user_count: authUsers?.users?.length || 0,
+        error: authError?.message || null
+      };
     } catch (err) {
-      console.log('Could not get schema info:', err);
+      results.auth_users = {
+        accessible: false,
+        error: err instanceof Error ? err.message : 'Unknown error'
+      };
     }
+
+    results.database_connection = 'Connected';
 
     return NextResponse.json({
       success: true,

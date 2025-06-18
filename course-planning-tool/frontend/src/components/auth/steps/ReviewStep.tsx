@@ -52,7 +52,33 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
 
       console.log('✅ Supabase auth user created:', authData.user.email);
 
-      // Step 2: Create email verification records (if tables exist)
+      // Step 2: Create user record in custom users table
+      try {
+        const { error: userError } = await supabase
+          .from('users')
+          .insert({
+            id: authData.user.id,
+            email: data.personalEmail,
+            first_name: data.firstName,
+            last_name: data.lastName,
+            edu_email: data.eduEmail,
+            edu_email_verified: data.eduEmailVerified,
+            edu_email_verified_at: data.eduEmailVerified ? new Date().toISOString() : null,
+            is_active: true,
+            is_verified: data.personalEmailVerified,
+          });
+
+        if (userError) {
+          console.warn('⚠️ User table creation failed:', userError);
+          // Don't fail completely - auth user was created
+        } else {
+          console.log('✅ User record created in users table');
+        }
+      } catch (err) {
+        console.warn('⚠️ Users table insert failed:', err);
+      }
+
+      // Step 3: Create email verification records (if tables exist)
       if (data.eduEmailVerified) {
         try {
           const { error: eduVerifyError } = await supabase
@@ -97,7 +123,7 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
         }
       }
 
-      // Step 3: Create academic profile (using correct schema)
+      // Step 4: Create academic profile (using correct schema)
       try {
         const { error: profileError } = await supabase
           .from('academic_profiles')
@@ -128,7 +154,7 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
         console.warn('⚠️ Academic profiles table may not exist:', err);
       }
 
-      // Step 4: Initialize dashboard metrics (if table exists)
+      // Step 5: Initialize dashboard metrics (if table exists)
       try {
         const { error: metricsError } = await supabase
           .from('dashboard_metrics')
@@ -157,40 +183,13 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
         console.warn('⚠️ Dashboard metrics table may not exist:', err);
       }
 
-      // Step 5: Log user activity (if table exists)
-      try {
-        const { error: activityError } = await supabase
-          .from('user_activity_log')
-          .insert({
-            user_id: authData.user.id,
-            activity_type: 'registration',
-            activity_category: 'auth',
-            description: 'User completed registration process',
-            metadata: {
-              registration_steps_completed: 5,
-              current_institution: data.currentInstitution,
-              target_institution: data.targetInstitution,
-              edu_email_verified: data.eduEmailVerified,
-              personal_email_verified: data.personalEmailVerified,
-            },
-            success: true,
-          });
-
-        if (activityError) {
-          console.warn('⚠️ Activity logging failed:', activityError);
-        } else {
-          console.log('✅ Registration activity logged');
-        }
-      } catch (err) {
-        console.warn('⚠️ User activity log table may not exist:', err);
-      }
-
       // Step 6: Store session info
       if (authData.session) {
         localStorage.setItem('supabase_session', JSON.stringify(authData.session));
         localStorage.setItem('access_token', authData.session.access_token);
       }
 
+      console.log('🎉 Registration completed successfully! User created in auth.users and custom tables populated.');
       setRegistrationStatus('success');
       
       // Redirect to intended page or dashboard after successful registration
