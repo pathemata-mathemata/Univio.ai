@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, DateTime, Enum
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from enum import Enum as PyEnum
 from app.core.database import Base
@@ -14,7 +14,8 @@ class StudentProfile(Base):
     __tablename__ = "student_profiles"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    # Reference to Supabase auth.users.id (UUID)
+    user_id = Column(UUID(as_uuid=True), unique=True, nullable=False, index=True)
     
     # Current academic information
     current_institution = Column(String, nullable=False)
@@ -35,6 +36,5 @@ class StudentProfile(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
-    # Relationships
-    user = relationship("User", back_populates="profile")
+    # Note: No SQLAlchemy relationship to auth.users since it's managed by Supabase
     transfer_requirements = relationship("TransferRequirement", back_populates="profile") 

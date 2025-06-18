@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from enum import Enum as PyEnum
@@ -14,7 +15,8 @@ class EnrolledCourse(Base):
     __tablename__ = "enrolled_courses"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    # Reference to Supabase auth.users.id (UUID)
+    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
     
     # Academic term information
@@ -30,5 +32,5 @@ class EnrolledCourse(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
-    user = relationship("User", back_populates="enrolled_courses")
+    # Note: No relationship to auth.users since it's managed by Supabase
     course = relationship("Course", back_populates="enrolled_courses") 

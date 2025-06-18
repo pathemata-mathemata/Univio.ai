@@ -1,26 +1,16 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
-from app.core.database import Base
+# This file now contains utility functions for referencing Supabase auth users
+# The actual users table is managed by Supabase Auth (auth.users) with UUID primary keys
 
-class User(Base):
-    __tablename__ = "users"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    name = Column(String, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    is_active = Column(Boolean, default=True)
-    is_verified = Column(Boolean, default=False)
-    
-    # Educational email verification
-    edu_email = Column(String, nullable=True, index=True)
-    edu_email_verified = Column(Boolean, default=False)
-    
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
-    # Relationships
-    profile = relationship("StudentProfile", back_populates="user", uselist=False)
-    enrolled_courses = relationship("EnrolledCourse", back_populates="user")
-    deadlines = relationship("UserDeadline", back_populates="user") 
+from sqlalchemy import text
+from sqlalchemy.dialects.postgresql import UUID
+
+# UUID type for referencing Supabase auth users
+SUPABASE_USER_ID_TYPE = UUID(as_uuid=True)
+
+# Reference to Supabase auth.users table
+def get_auth_users_table():
+    """
+    Returns a reference to the Supabase auth.users table.
+    This table is managed by Supabase and has UUID primary keys.
+    """
+    return "auth.users" 
