@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const userExists = users.some(user => user.email?.toLowerCase() === email.toLowerCase());
+    const userExists = users.some((user: any) => user.email?.toLowerCase() === email.toLowerCase());
     
     if (!userExists) {
       // Don't reveal if user exists or not for security
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user details for personalized email
-    const user = users.find(user => user.email?.toLowerCase() === email.toLowerCase());
+    const user = users.find((user: any) => user.email?.toLowerCase() === email.toLowerCase());
     const firstName = user?.user_metadata?.first_name || user?.user_metadata?.firstName;
 
     try {
