@@ -16,342 +16,312 @@ interface AcademicInfoStepProps {
 
 const commonInstitutions = [
   // California Community Colleges - Los Angeles Area
+  'Allan Hancock College',
+  'American River College',
+  'Antelope Valley College',
+  'Bakersfield College',
+  'Barstow Community College',
+  'Berkeley City College',
+  'Butte College',
+  'Cabrillo College',
+  'Cañada College',
+  'Cerro Coso Community College',
+  'Cerritos College',
+  'Chabot College',
+  'Chaffey College',
+  'Citrus College',
+  'City College of San Francisco',
+  'College of Alameda',
+  'College of Marin',
+  'College of San Mateo',
+  'College of the Sequoias',
+  'Columbia College',
+  'Compton College',
+  'Contra Costa College',
+  'Cosumnes River College',
+  'Cuesta College',
+  'Cuyamaca College',
+  'Cypress College',
+  'De Anza College',
+  'Diablo Valley College',
+  'East Los Angeles College',
+  'El Camino College',
+  'Evergreen Valley College',
+  'Feather River College',
+  'Folsom Lake College',
+  'Foothill College',
+  'Fresno City College',
+  'Fullerton College',
+  'Gavilan College',
+  'Glendale Community College',
+  'Golden West College',
+  'Grossmont College',
+  'Hartnell College',
+  'Imperial Valley College',
+  'Irvine Valley College',
+  'Kings River College',
+  'Laney College',
+  'Las Positas College',
+  'Lassen Community College',
+  'Long Beach City College',
   'Los Angeles City College',
-  'Los Angeles Harbor College', 
+  'Los Angeles Harbor College',
   'Los Angeles Mission College',
   'Los Angeles Pierce College',
   'Los Angeles Southwest College',
   'Los Angeles Trade-Technical College',
   'Los Angeles Valley College',
-  'East Los Angeles College',
-  'West Los Angeles College',
-  'Santa Monica College',
-  'Pasadena City College',
-  'Glendale Community College',
-  'Citrus College',
-  'Mt. San Antonio College',
-  'Rio Hondo College',
-  'El Camino College',
-  'Compton College',
-  'Long Beach City College',
-  'Cerritos College',
-  'Cypress College',
-  'Fullerton College',
-  'Golden West College',
-  'Orange Coast College',
-  'Santiago Canyon College',
-  'Irvine Valley College',
-  'Saddleback College',
-  'Moorpark College',
-  'Oxnard College',
-  'Ventura College',
-  
-  // San Francisco Bay Area
-  'De Anza College',
-  'Foothill College',
-  'Mission College',
-  'West Valley College',
-  'San Jose City College',
-  'Evergreen Valley College',
-  'Gavilan College',
-  'Ohlone College',
-  'Chabot College',
-  'Las Positas College',
-  'Laney College',
-  'Berkeley City College',
-  'College of Alameda',
-  'Merritt College',
-  'Diablo Valley College',
   'Los Medanos College',
-  'Contra Costa College',
-  'College of San Mateo',
-  'Cañada College',
-  'Skyline College',
-  'City College of San Francisco',
-  'College of Marin',
-  'Santa Rosa Junior College',
-  'Napa Valley College',
-  'Solano Community College',
-  
-  // Central Valley
-  'American River College',
-  'Sacramento City College',
-  'Cosumnes River College',
-  'Folsom Lake College',
-  'Sierra College',
-  'Yuba College',
-  'Butte College',
-  'Shasta College',
-  'Lassen Community College',
-  'Feather River College',
-  'Modesto Junior College',
-  'San Joaquin Delta College',
-  'Columbia College',
+  'Mendocino College',
   'Merced College',
-  'Fresno City College',
-  'Reedley College',
-  'Kings River College',
-  'West Hills College Coalinga',
-  'West Hills College Lemoore',
+  'Merritt College',
+  'MiraCosta College',
+  'Mission College',
+  'Modesto Junior College',
+  'Monterey Peninsula College',
+  'Moorpark College',
+  'Mt. San Antonio College',
+  'Napa Valley College',
+  'Ohlone College',
+  'Orange Coast College',
+  'Oxnard College',
+  'Palomar College',
+  'Palo Verde College',
+  'Pasadena City College',
   'Porterville College',
-  'College of the Sequoias',
-  'Bakersfield College',
-  'Cerro Coso Community College',
-  'Taft College',
-  
-  // San Diego Area
+  'Reedley College',
+  'Rio Hondo College',
+  'Sacramento City College',
+  'Saddleback College',
   'San Diego City College',
   'San Diego Mesa College',
   'San Diego Miramar College',
-  'Grossmont College',
-  'Cuyamaca College',
+  'San Joaquin Delta College',
+  'San Jose City College',
+  'Santa Monica College',
+  'Santa Rosa Junior College',
+  'Santiago Canyon College',
+  'Shasta College',
+  'Sierra College',
+  'Skyline College',
+  'Solano Community College',
   'Southwestern College',
-  'Imperial Valley College',
-  'MiraCosta College',
-  'Palomar College',
-  
-  // Other California Colleges
-  'Allan Hancock College',
-  'Antelope Valley College',
-  'Barstow Community College',
-  'Cabrillo College',
-  'Cuesta College',
-  'Hartnell College',
-  'Mendocino College',
-  'Monterey Peninsula College',
-  'Palo Verde College',
+  'Taft College',
+  'Ventura College',
   'Victor Valley College',
+  'West Hills College Coalinga',
+  'West Hills College Lemoore',
+  'West Los Angeles College',
+  'West Valley College',
+  'Yuba College',
   
-  // Out-of-State Community Colleges
-  'Northern Virginia Community College',
-  'Miami Dade College',
-  'Houston Community College',
-  'Austin Community College',
-  'Tarrant County College',
+  // Out-of-State Community Colleges (sorted)
   'Arizona State University (Community College)',
-  'Phoenix College',
+  'Austin Community College',
+  'Houston Community College',
   'Mesa Community College',
+  'Miami Dade College',
+  'Northern Virginia Community College',
+  'Phoenix College',
   'Scottsdale Community College',
-  'Other'
-];
+  'Tarrant County College'
+].sort().concat(['Other']); // Sort alphabetically and add Other at the end
 
 const targetInstitutions = [
   // UC System
   'UC Berkeley',
-  'UC Los Angeles (UCLA)',
-  'UC San Diego',
   'UC Davis',
   'UC Irvine',
+  'UC Los Angeles (UCLA)',
+  'UC Merced',
+  'UC Riverside',
+  'UC San Diego',
   'UC Santa Barbara',
   'UC Santa Cruz',
-  'UC Riverside',
-  'UC Merced',
   
   // CSU System
-  'Cal State Los Angeles',
-  'Cal State Long Beach',
-  'Cal State Northridge',
-  'Cal State Fullerton',
+  'Cal Maritime',
+  'Cal Poly Pomona',
+  'Cal Poly San Luis Obispo',
+  'Cal State Channel Islands',
   'Cal State Dominguez Hills',
   'Cal State East Bay',
   'Cal State Fresno',
+  'Cal State Fullerton',
+  'Cal State Long Beach',
+  'Cal State Los Angeles',
+  'Cal State Monterey Bay',
+  'Cal State Northridge',
   'Cal State Sacramento',
   'Cal State San Bernardino',
   'Cal State San Marcos',
   'Cal State Stanislaus',
-  'Cal State Channel Islands',
-  'Cal State Monterey Bay',
+  'Chico State',
+  'Humboldt State',
   'San Diego State',
   'San Francisco State',
   'San Jose State',
-  'Cal Poly San Luis Obispo',
-  'Cal Poly Pomona',
-  'Humboldt State',
-  'Chico State',
   'Sonoma State',
-  'Cal Maritime',
   
   // Private California Universities
-  'USC',
-  'Stanford University',
   'California Institute of Technology (Caltech)',
-  'Claremont McKenna College',
-  'Pomona College',
-  'Harvey Mudd College',
-  'Pitzer College',
-  'Scripps College',
-  'Occidental College',
-  'University of San Diego',
-  'Santa Clara University',
-  'Loyola Marymount University',
-  'Pepperdine University',
   'Chapman University',
-  'University of the Pacific',
-  'Mills College',
+  'Claremont McKenna College',
   'Dominican University',
+  'Harvey Mudd College',
+  'Loyola Marymount University',
+  'Mills College',
+  'Occidental College',
+  'Pepperdine University',
+  'Pitzer College',
+  'Pomona College',
   'Saint Mary\'s College',
+  'Santa Clara University',
+  'Scripps College',
+  'Stanford University',
+  'University of San Diego',
+  'University of the Pacific',
+  'USC',
   
   // Out-of-State Universities
-  'University of Washington',
-  'University of Oregon',
-  'Oregon State University',
   'Arizona State University',
-  'University of Arizona',
-  'University of Nevada Las Vegas',
-  'University of Nevada Reno',
-  'University of Texas Austin',
-  'Texas A&M University',
-  'University of Colorado Boulder',
   'Colorado State University',
-  'New York University',
   'Columbia University',
   'Cornell University',
   'Harvard University',
   'MIT',
-  'Yale University',
-  'Princeton University',
-  'University of Chicago',
+  'New York University',
   'Northwestern University',
-  'Other'
-];
+  'Oregon State University',
+  'Princeton University',
+  'Texas A&M University',
+  'University of Arizona',
+  'University of Chicago',
+  'University of Colorado Boulder',
+  'University of Nevada Las Vegas',
+  'University of Nevada Reno',
+  'University of Oregon',
+  'University of Texas Austin',
+  'University of Washington',
+  'Yale University'
+].sort().concat(['Other']); // Sort alphabetically and add Other at the end
 
 const commonMajors = [
-  // STEM Fields
-  'Computer Science',
-  'Computer Engineering',
-  'Software Engineering',
-  'Data Science',
-  'Information Systems',
-  'Cybersecurity',
-  'Electrical Engineering',
-  'Mechanical Engineering',
-  'Civil Engineering',
-  'Chemical Engineering',
-  'Biomedical Engineering',
-  'Aerospace Engineering',
-  'Environmental Engineering',
-  'Industrial Engineering',
-  'Materials Science',
-  'Mathematics',
-  'Applied Mathematics',
-  'Statistics',
-  'Physics',
-  'Chemistry',
-  'Biology',
-  'Biochemistry',
-  'Molecular Biology',
-  'Microbiology',
-  'Biotechnology',
-  'Environmental Science',
-  'Geology',
-  'Astronomy',
-  
-  // Business & Economics
-  'Business Administration',
+  // All majors combined and sorted
   'Accounting',
-  'Finance',
-  'Marketing',
-  'Management',
-  'International Business',
-  'Entrepreneurship',
-  'Economics',
-  'Applied Economics',
-  'Business Economics',
-  
-  // Health Sciences
-  'Pre-Med',
-  'Pre-Dental',
-  'Pre-Pharmacy',
-  'Pre-Veterinary',
-  'Nursing',
-  'Public Health',
-  'Health Sciences',
-  'Kinesiology',
-  'Exercise Science',
-  'Sports Medicine',
-  'Physical Therapy',
-  'Occupational Therapy',
-  'Nutrition',
-  
-  // Social Sciences
-  'Psychology',
-  'Sociology',
-  'Anthropology',
-  'Political Science',
-  'International Relations',
-  'Criminal Justice',
-  'Social Work',
-  'Human Development',
-  'Gender Studies',
-  'Ethnic Studies',
-  
-  // Liberal Arts & Humanities
-  'English',
-  'English Literature',
-  'Creative Writing',
-  'History',
-  'Philosophy',
-  'Religious Studies',
-  'Art History',
-  'Classics',
-  'Linguistics',
-  'Foreign Languages',
-  'Spanish',
-  'French',
-  'Chinese',
-  'Japanese',
-  
-  // Communications & Media
-  'Communications',
-  'Journalism',
-  'Media Studies',
-  'Film Studies',
-  'Television Production',
-  'Digital Media',
-  'Public Relations',
   'Advertising',
-  
-  // Arts & Design
-  'Art',
-  'Fine Arts',
-  'Graphic Design',
-  'Industrial Design',
-  'Fashion Design',
-  'Interior Design',
-  'Architecture',
-  'Music',
-  'Theatre Arts',
-  'Dance',
-  'Photography',
-  
-  // Education
-  'Education',
-  'Elementary Education',
-  'Secondary Education',
-  'Special Education',
-  'Early Childhood Education',
-  'Educational Psychology',
-  
-  // Legal & Pre-Professional
-  'Pre-Law',
-  'Legal Studies',
-  'Paralegal Studies',
-  
-  // Agriculture & Environmental
+  'Aerospace Engineering',
   'Agriculture',
   'Agricultural Business',
-  'Environmental Studies',
-  'Forestry',
-  'Marine Biology',
+  'Anthropology',
+  'Applied Economics',
+  'Applied Mathematics',
+  'Architecture',
+  'Art',
+  'Art History',
+  'Astronomy',
+  'Biochemistry',
+  'Biology',
+  'Biomedical Engineering',
+  'Biotechnology',
+  'Business Administration',
+  'Business Economics',
+  'Chemical Engineering',
+  'Chemistry',
+  'Chinese',
+  'Civil Engineering',
+  'Classics',
+  'Communications',
+  'Computer Engineering',
+  'Computer Science',
   'Conservation Biology',
-  
-  // Other Popular Majors
-  'Undeclared',
+  'Creative Writing',
+  'Criminal Justice',
+  'Cybersecurity',
+  'Dance',
+  'Data Science',
+  'Digital Media',
+  'Early Childhood Education',
+  'Economics',
+  'Education',
+  'Educational Psychology',
+  'Electrical Engineering',
+  'Elementary Education',
+  'English',
+  'English Literature',
+  'Entrepreneurship',
+  'Environmental Engineering',
+  'Environmental Science',
+  'Environmental Studies',
+  'Ethnic Studies',
+  'Exercise Science',
+  'Fashion Design',
+  'Film Studies',
+  'Finance',
+  'Fine Arts',
+  'Foreign Languages',
+  'Forestry',
+  'French',
+  'Gender Studies',
   'General Studies',
-  'Liberal Studies',
+  'Geology',
+  'Graphic Design',
+  'Health Sciences',
+  'History',
+  'Human Development',
+  'Industrial Design',
+  'Industrial Engineering',
+  'Information Systems',
   'Interdisciplinary Studies',
-  'Other'
-];
+  'Interior Design',
+  'International Business',
+  'International Relations',
+  'Japanese',
+  'Journalism',
+  'Kinesiology',
+  'Legal Studies',
+  'Liberal Studies',
+  'Linguistics',
+  'Management',
+  'Marine Biology',
+  'Marketing',
+  'Materials Science',
+  'Mathematics',
+  'Mechanical Engineering',
+  'Media Studies',
+  'Microbiology',
+  'Molecular Biology',
+  'Music',
+  'Nursing',
+  'Nutrition',
+  'Occupational Therapy',
+  'Paralegal Studies',
+  'Philosophy',
+  'Photography',
+  'Physical Therapy',
+  'Physics',
+  'Political Science',
+  'Pre-Dental',
+  'Pre-Law',
+  'Pre-Med',
+  'Pre-Pharmacy',
+  'Pre-Veterinary',
+  'Psychology',
+  'Public Health',
+  'Public Relations',
+  'Religious Studies',
+  'Secondary Education',
+  'Social Work',
+  'Sociology',
+  'Software Engineering',
+  'Spanish',
+  'Special Education',
+  'Sports Medicine',
+  'Statistics',
+  'Television Production',
+  'Theatre Arts',
+  'Undeclared'
+].sort().concat(['Other']); // Sort alphabetically and add Other at the end
 
 const quarters = ['Fall', 'Winter', 'Spring', 'Summer'];
 const currentYear = new Date().getFullYear();
@@ -479,15 +449,15 @@ export function AcademicInfoStep({ data, updateData, onNext, onPrev, isLoading }
                 {institution}
               </option>
             ))}
-            <option value="Other">Other</option>
           </select>
           
           {showCurrentInstitutionOther && (
             <Input
-              placeholder="Enter your current institution"
+              placeholder="Enter your current institution name"
               value={data.currentInstitution === 'Other' ? '' : data.currentInstitution}
               onChange={(e) => handleFieldChange('currentInstitution', e.target.value)}
               className={errors.currentInstitution ? 'border-red-500' : ''}
+              autoFocus
             />
           )}
           
@@ -511,8 +481,8 @@ export function AcademicInfoStep({ data, updateData, onNext, onPrev, isLoading }
               handleFieldChange('currentMajor', value);
               setShowCurrentMajorOther(value === 'Other');
             }}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.currentMajor ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#111416] ${
+              errors.currentMajor ? 'border-red-500' : 'border-[#e5e8ea]'
             }`}
           >
             <option value="">Select your major</option>
@@ -525,10 +495,11 @@ export function AcademicInfoStep({ data, updateData, onNext, onPrev, isLoading }
           
           {showCurrentMajorOther && (
             <Input
-              placeholder="Enter your major"
+              placeholder="Enter your major name"
               value={data.currentMajor === 'Other' ? '' : data.currentMajor}
               onChange={(e) => handleFieldChange('currentMajor', e.target.value)}
               className={errors.currentMajor ? 'border-red-500' : ''}
+              autoFocus
             />
           )}
           
@@ -569,8 +540,8 @@ export function AcademicInfoStep({ data, updateData, onNext, onPrev, isLoading }
           <select
             value={data.expectedTransferQuarter}
             onChange={(e) => handleFieldChange('expectedTransferQuarter', e.target.value)}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.expectedTransferQuarter ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#111416] ${
+              errors.expectedTransferQuarter ? 'border-red-500' : 'border-[#e5e8ea]'
             }`}
           >
             <option value="">Select quarter</option>
@@ -596,8 +567,8 @@ export function AcademicInfoStep({ data, updateData, onNext, onPrev, isLoading }
           <select
             value={data.expectedTransferYear}
             onChange={(e) => handleFieldChange('expectedTransferYear', e.target.value)}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.expectedTransferYear ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#111416] ${
+              errors.expectedTransferYear ? 'border-red-500' : 'border-[#e5e8ea]'
             }`}
           >
             <option value="">Select year</option>
@@ -627,8 +598,8 @@ export function AcademicInfoStep({ data, updateData, onNext, onPrev, isLoading }
               handleFieldChange('targetInstitution', value);
               setShowTargetInstitutionOther(value === 'Other');
             }}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.targetInstitution ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#111416] ${
+              errors.targetInstitution ? 'border-red-500' : 'border-[#e5e8ea]'
             }`}
           >
             <option value="">Select target university</option>
@@ -641,10 +612,11 @@ export function AcademicInfoStep({ data, updateData, onNext, onPrev, isLoading }
           
           {showTargetInstitutionOther && (
             <Input
-              placeholder="Enter target institution"
+              placeholder="Enter target institution name"
               value={data.targetInstitution === 'Other' ? '' : data.targetInstitution}
               onChange={(e) => handleFieldChange('targetInstitution', e.target.value)}
               className={errors.targetInstitution ? 'border-red-500' : ''}
+              autoFocus
             />
           )}
           
@@ -668,8 +640,8 @@ export function AcademicInfoStep({ data, updateData, onNext, onPrev, isLoading }
               handleFieldChange('targetMajor', value);
               setShowTargetMajorOther(value === 'Other');
             }}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.targetMajor ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#111416] ${
+              errors.targetMajor ? 'border-red-500' : 'border-[#e5e8ea]'
             }`}
           >
             <option value="">Select target major</option>
@@ -682,10 +654,11 @@ export function AcademicInfoStep({ data, updateData, onNext, onPrev, isLoading }
           
           {showTargetMajorOther && (
             <Input
-              placeholder="Enter target major"
+              placeholder="Enter target major name"
               value={data.targetMajor === 'Other' ? '' : data.targetMajor}
               onChange={(e) => handleFieldChange('targetMajor', e.target.value)}
               className={errors.targetMajor ? 'border-red-500' : ''}
+              autoFocus
             />
           )}
           

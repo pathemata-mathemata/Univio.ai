@@ -43,15 +43,24 @@ export default function LoginPage() {
       });
 
       if (authError) {
-        throw new Error(authError.message);
+        // Handle specific error cases
+        if (authError.message.includes('Email not confirmed')) {
+          setError('Please check your email and click the confirmation link before signing in.');
+        } else if (authError.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please check your credentials and try again.');
+        } else {
+          setError(authError.message);
+        }
+        return;
       }
 
-      if (data.session) {
+      if (data.session && data.user) {
         // Store Supabase session
         localStorage.setItem('supabase_session', JSON.stringify(data.session));
         localStorage.setItem('access_token', data.session.access_token);
         
-        console.log('✅ Supabase login successful:', data.user?.email);
+        console.log('✅ Supabase login successful:', data.user.email);
+        console.log('📧 Email confirmed:', data.user.email_confirmed_at !== null);
         
         // Check for redirect path and go there, otherwise go to dashboard
         const redirectPath = localStorage.getItem('redirect_after_login');
