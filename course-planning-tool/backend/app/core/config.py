@@ -52,8 +52,13 @@ class Settings(BaseSettings):
             print(f"🔍 Postgres Port: {self.POSTGRES_PORT}")
             print(f"🔍 Postgres DB: {self.POSTGRES_DB or 'postgres'}")
             
-            # Use the environment variables directly
-            host = self.POSTGRES_HOST or "aws-0-us-east-1.pooler.supabase.com"
+            # Use the environment variables directly - MUST have POSTGRES_HOST set
+            if not self.POSTGRES_HOST:
+                print("❌ POSTGRES_HOST environment variable is required!")
+                print("❌ Set POSTGRES_HOST=aws-0-us-west-1.pooler.supabase.com")
+                raise ValueError("POSTGRES_HOST environment variable is required")
+            
+            host = self.POSTGRES_HOST
             port = self.POSTGRES_PORT or "6543"
             database = self.POSTGRES_DB or "postgres"
             
@@ -68,6 +73,7 @@ class Settings(BaseSettings):
             if not self.SUPABASE_URL: missing.append("SUPABASE_URL")
             if not self.POSTGRES_USER: missing.append("POSTGRES_USER") 
             if not self.POSTGRES_PASSWORD: missing.append("POSTGRES_PASSWORD")
+            if not self.POSTGRES_HOST: missing.append("POSTGRES_HOST")
             print(f"❌ Missing Supabase credentials: {', '.join(missing)}")
             
             # Fallback to SQLite for local development
