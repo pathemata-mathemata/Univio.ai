@@ -28,7 +28,7 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
     try {
       console.log('🚀 Creating complete user account with all data...');
       
-      // Step 1: Create Supabase auth user
+      // Step 1: Create Supabase auth user (this creates the user in auth.users automatically)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.personalEmail,
         password: data.password,
@@ -52,138 +52,140 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
 
       console.log('✅ Supabase auth user created:', authData.user.email);
 
-      // Step 2: Create user record in users table
-      const { error: userError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          email: data.personalEmail,
-          first_name: data.firstName,
-          last_name: data.lastName,
-          edu_email: data.eduEmail,
-          edu_email_verified: data.eduEmailVerified,
-          edu_email_verified_at: data.eduEmailVerified ? new Date().toISOString() : null,
-          is_active: true,
-          is_verified: data.personalEmailVerified,
-        });
-
-      if (userError) {
-        console.warn('⚠️ User table creation failed:', userError);
-        // Continue anyway - auth user was created
-      } else {
-        console.log('✅ User record created in users table');
-      }
-
-      // Step 3: Create email verification records
+      // Step 2: Create email verification records (if tables exist)
       if (data.eduEmailVerified) {
-        const { error: eduVerifyError } = await supabase
-          .from('email_verifications')
-          .insert({
-            email: data.eduEmail,
-            code: 'verified-during-registration',
-            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            attempts: 0,
-            verified: true,
-          });
+        try {
+          const { error: eduVerifyError } = await supabase
+            .from('email_verifications')
+            .insert({
+              email: data.eduEmail,
+              code: 'verified-during-registration',
+              expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              attempts: 0,
+              verified: true,
+            });
 
-        if (eduVerifyError) {
-          console.warn('⚠️ Educational email verification record failed:', eduVerifyError);
+          if (eduVerifyError) {
+            console.warn('⚠️ Educational email verification record failed:', eduVerifyError);
+          } else {
+            console.log('✅ Educational email verification record created');
+          }
+        } catch (err) {
+          console.warn('⚠️ Email verification table may not exist:', err);
         }
       }
 
       if (data.personalEmailVerified) {
-        const { error: personalVerifyError } = await supabase
-          .from('email_verifications')
-          .insert({
-            email: data.personalEmail,
-            code: 'verified-during-registration',
-            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            attempts: 0,
-            verified: true,
-          });
+        try {
+          const { error: personalVerifyError } = await supabase
+            .from('email_verifications')
+            .insert({
+              email: data.personalEmail,
+              code: 'verified-during-registration',
+              expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              attempts: 0,
+              verified: true,
+            });
 
-        if (personalVerifyError) {
-          console.warn('⚠️ Personal email verification record failed:', personalVerifyError);
+          if (personalVerifyError) {
+            console.warn('⚠️ Personal email verification record failed:', personalVerifyError);
+          } else {
+            console.log('✅ Personal email verification record created');
+          }
+        } catch (err) {
+          console.warn('⚠️ Email verification table may not exist:', err);
         }
       }
 
-      // Step 4: Create academic profile
-      const { error: profileError } = await supabase
-        .from('academic_profiles')
-        .insert({
-          user_id: authData.user.id,
-          current_institution_name: data.currentInstitution,
-          current_major_name: data.currentMajor,
-          current_gpa: data.currentGPA ? parseFloat(data.currentGPA) : null,
-          current_quarter: data.currentQuarter.toLowerCase(),
-          current_year: parseInt(data.currentYear),
-          expected_transfer_year: parseInt(data.expectedTransferYear),
-          expected_transfer_quarter: data.expectedTransferQuarter.toLowerCase(),
-          target_institution_name: data.targetInstitution,
-          target_major_name: data.targetMajor,
-          max_units_per_quarter: 16, // Default value
-          preferred_study_intensity: 'moderate', // Default value
-          is_complete: true,
-          last_updated_by_user: authData.user.id,
-        });
+      // Step 3: Create academic profile (using correct schema)
+      try {
+        const { error: profileError } = await supabase
+          .from('academic_profiles')
+          .insert({
+            user_id: authData.user.id,
+            current_institution_name: data.currentInstitution,
+            current_major_name: data.currentMajor,
+            current_gpa: data.currentGPA ? parseFloat(data.currentGPA) : null,
+            current_quarter: data.expectedTransferQuarter?.toLowerCase() || 'fall', // Use expected as current for now
+            current_year: new Date().getFullYear(), // Current year
+            expected_transfer_year: parseInt(data.expectedTransferYear),
+            expected_transfer_quarter: data.expectedTransferQuarter?.toLowerCase(),
+            target_institution_name: data.targetInstitution,
+            target_major_name: data.targetMajor,
+            max_units_per_quarter: 16, // Default value
+            preferred_study_intensity: 'moderate', // Default value
+            is_complete: true,
+            last_updated_by_user: authData.user.id,
+          });
 
-      if (profileError) {
-        console.warn('⚠️ Academic profile creation failed:', profileError);
-        // Don't fail the registration completely
-      } else {
-        console.log('✅ Academic profile created successfully');
+        if (profileError) {
+          console.warn('⚠️ Academic profile creation failed:', profileError);
+          // Don't fail the registration completely
+        } else {
+          console.log('✅ Academic profile created successfully');
+        }
+      } catch (err) {
+        console.warn('⚠️ Academic profiles table may not exist:', err);
       }
 
-      // Step 5: Initialize dashboard metrics
-      const { error: metricsError } = await supabase
-        .from('dashboard_metrics')
-        .insert({
-          user_id: authData.user.id,
-          overall_progress_percentage: 0,
-          completed_units: 0,
-          remaining_units: 60, // Typical transfer requirement
-          total_courses_completed: 0,
-          total_courses_planned: 0,
-          current_quarter_units: 0,
-          requirements_completed: 0,
-          requirements_total: 0,
-          on_track_for_transfer: true,
-          total_planning_sessions: 0,
-          days_since_last_activity: 0,
-          calculated_at: new Date().toISOString(),
-        });
+      // Step 4: Initialize dashboard metrics (if table exists)
+      try {
+        const { error: metricsError } = await supabase
+          .from('dashboard_metrics')
+          .insert({
+            user_id: authData.user.id,
+            overall_progress_percentage: 0,
+            completed_units: 0,
+            remaining_units: 60, // Typical transfer requirement
+            total_courses_completed: 0,
+            total_courses_planned: 0,
+            current_quarter_units: 0,
+            requirements_completed: 0,
+            requirements_total: 0,
+            on_track_for_transfer: true,
+            total_planning_sessions: 0,
+            days_since_last_activity: 0,
+            calculated_at: new Date().toISOString(),
+          });
 
-      if (metricsError) {
-        console.warn('⚠️ Dashboard metrics initialization failed:', metricsError);
-      } else {
-        console.log('✅ Dashboard metrics initialized');
+        if (metricsError) {
+          console.warn('⚠️ Dashboard metrics initialization failed:', metricsError);
+        } else {
+          console.log('✅ Dashboard metrics initialized');
+        }
+      } catch (err) {
+        console.warn('⚠️ Dashboard metrics table may not exist:', err);
       }
 
-      // Step 6: Log user activity
-      const { error: activityError } = await supabase
-        .from('user_activity_log')
-        .insert({
-          user_id: authData.user.id,
-          activity_type: 'registration',
-          activity_category: 'auth',
-          description: 'User completed registration process',
-          metadata: {
-            registration_steps_completed: 5,
-            current_institution: data.currentInstitution,
-            target_institution: data.targetInstitution,
-            edu_email_verified: data.eduEmailVerified,
-            personal_email_verified: data.personalEmailVerified,
-          },
-          success: true,
-        });
+      // Step 5: Log user activity (if table exists)
+      try {
+        const { error: activityError } = await supabase
+          .from('user_activity_log')
+          .insert({
+            user_id: authData.user.id,
+            activity_type: 'registration',
+            activity_category: 'auth',
+            description: 'User completed registration process',
+            metadata: {
+              registration_steps_completed: 5,
+              current_institution: data.currentInstitution,
+              target_institution: data.targetInstitution,
+              edu_email_verified: data.eduEmailVerified,
+              personal_email_verified: data.personalEmailVerified,
+            },
+            success: true,
+          });
 
-      if (activityError) {
-        console.warn('⚠️ Activity logging failed:', activityError);
-      } else {
-        console.log('✅ Registration activity logged');
+        if (activityError) {
+          console.warn('⚠️ Activity logging failed:', activityError);
+        } else {
+          console.log('✅ Registration activity logged');
+        }
+      } catch (err) {
+        console.warn('⚠️ User activity log table may not exist:', err);
       }
 
-      // Step 7: Store session info
+      // Step 6: Store session info
       if (authData.session) {
         localStorage.setItem('supabase_session', JSON.stringify(authData.session));
         localStorage.setItem('access_token', authData.session.access_token);
