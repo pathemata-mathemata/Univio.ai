@@ -80,6 +80,8 @@ const TransferPlanningPage = (): JSX.Element => {
       setProfileData(profile);
       
       // Auto-fill form with existing data
+      console.log('🔧 Frontend: Checking academic profile existence:', !!profile?.academic_profile);
+      console.log('🔧 Frontend: Academic profile object:', profile?.academic_profile);
       if (profile?.academic_profile) {
         const academicProfile = profile.academic_profile;
         console.log('🔧 Frontend: Found academic profile, filling form:', academicProfile);
