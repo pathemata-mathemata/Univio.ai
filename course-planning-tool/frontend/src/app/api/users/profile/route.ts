@@ -4,16 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
-console.log('🔧 Environment variables check:', {
-  SUPABASE_URL: !!process.env.SUPABASE_URL,
-  NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-  SUPABASE_ANON_KEY: !!process.env.SUPABASE_ANON_KEY,
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  finalSupabaseUrl: !!supabaseUrl,
-  finalAnonKey: !!supabaseAnonKey,
-  supabaseUrlValue: supabaseUrl?.substring(0, 20) + '...',
-  anonKeyValue: supabaseAnonKey?.substring(0, 20) + '...'
-});
+// Environment variables validated
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('❌ Missing Supabase environment variables');
@@ -22,25 +13,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔧 Profile API - GET request started');
-    console.log('🔧 Environment check:', {
-      hasSupabaseUrl: !!supabaseUrl,
-      hasAnonKey: !!supabaseAnonKey,
-      supabaseUrlLength: supabaseUrl?.length || 0
-    });
-
     // Get the session token from the request
     const authHeader = request.headers.get('authorization');
     const sessionToken = authHeader?.replace('Bearer ', '') || '';
 
-    console.log('🔧 Auth check:', {
-      hasAuthHeader: !!authHeader,
-      hasSessionToken: !!sessionToken,
-      tokenLength: sessionToken?.length || 0
-    });
-
     if (!sessionToken) {
-      console.log('❌ No session token provided');
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -57,25 +34,14 @@ export async function GET(request: NextRequest) {
     });
 
     // Verify the session token
-    console.log('🔧 Verifying session token...');
     const { data: { user }, error: userError } = await supabase.auth.getUser(sessionToken);
     
-    console.log('🔧 User verification result:', {
-      hasUser: !!user,
-      userId: user?.id,
-      userEmail: user?.email,
-      error: userError?.message
-    });
-    
     if (userError || !user) {
-      console.log('❌ User verification failed:', userError?.message);
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
-
-    console.log('✅ User verified successfully:', user.email);
 
     // Instead of querying custom 'users' table, use auth user data directly
     const userData = {
@@ -89,21 +55,12 @@ export async function GET(request: NextRequest) {
       updated_at: user.updated_at
     };
 
-    console.log('🔧 User data prepared:', userData);
-
     // Get academic profile using RLS
-    console.log('🔧 Fetching academic profile for user:', user.id);
     const { data: academicProfile, error: academicError } = await supabase
       .from('academic_profiles')
       .select('*')
       .eq('user_id', user.id)
       .single();
-
-    console.log('🔧 Academic profile result:', {
-      hasProfile: !!academicProfile,
-      error: academicError?.message,
-      profileData: academicProfile
-    });
 
     // Academic profile error is not critical - user might not have one yet  
     if (academicError && academicError.code !== 'PGRST116') { // PGRST116 = no rows found
@@ -116,7 +73,6 @@ export async function GET(request: NextRequest) {
       academic_profile: academicProfile || null
     };
 
-    console.log('✅ Profile data ready to return');
     return NextResponse.json({
       data: profileData,
       success: true
@@ -133,14 +89,11 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    console.log('🔧 Profile UPDATE - PUT request started');
-    
     // Get the session token from the request
     const authHeader = request.headers.get('authorization');
     const sessionToken = authHeader?.replace('Bearer ', '') || '';
 
     if (!sessionToken) {
-      console.log('❌ No session token in PUT request');
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -157,22 +110,17 @@ export async function PUT(request: NextRequest) {
     });
 
     // Verify the session token
-    console.log('🔧 Verifying session token for PUT...');
     const { data: { user }, error: userError } = await supabase.auth.getUser(sessionToken);
     
     if (userError || !user) {
-      console.log('❌ User verification failed in PUT:', userError?.message);
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    console.log('✅ User verified for PUT:', user.email);
-
     // Get the request body
     const updateData = await request.json();
-    console.log('🔧 Update data received:', updateData);
 
     // Check if academic profile exists
     const { data: existingProfile, error: fetchError } = await supabase

@@ -71,20 +71,13 @@ const TransferPlanningPage = (): JSX.Element => {
   const loadUserProfile = async () => {
     try {
       setLoading(true);
-      console.log('🔧 Frontend: Starting profile load...');
       const result = await profileApi.getProfile();
-      console.log('🔧 Frontend: Profile API result:', result);
       const profile = result.data;
-      console.log('🔧 Frontend: Profile data:', profile);
-      console.log('🔧 Frontend: Academic profile:', profile?.academic_profile);
       setProfileData(profile);
       
       // Auto-fill form with existing data
-      console.log('🔧 Frontend: Checking academic profile existence:', !!profile?.academic_profile);
-      console.log('🔧 Frontend: Academic profile object:', profile?.academic_profile);
       if (profile?.academic_profile) {
         const academicProfile = profile.academic_profile;
-        console.log('🔧 Frontend: Found academic profile, filling form:', academicProfile);
         setFormData({
           year: academicProfile.expected_transfer_year?.toString() || "",
           quarter: academicProfile.expected_transfer_quarter || "",
@@ -92,18 +85,9 @@ const TransferPlanningPage = (): JSX.Element => {
           institution: academicProfile.current_institution_name || academicProfile.current_institution || "",
           transfer: academicProfile.target_institution_name || academicProfile.target_institution || "",
         });
-        console.log('🔧 Frontend: Form data set:', {
-          year: academicProfile.expected_transfer_year?.toString() || "",
-          quarter: academicProfile.expected_transfer_quarter || "",
-          major: academicProfile.current_major_name || academicProfile.current_major || "",
-          institution: academicProfile.current_institution_name || academicProfile.current_institution || "",
-          transfer: academicProfile.target_institution_name || academicProfile.target_institution || "",
-        });
-      } else {
-        console.log('🔧 Frontend: No academic profile found');
       }
     } catch (error) {
-      console.error('❌ Frontend: Error loading user profile:', error);
+      console.error('Error loading user profile:', error);
     } finally {
       setLoading(false);
     }
