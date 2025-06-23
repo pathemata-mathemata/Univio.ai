@@ -82,7 +82,7 @@ export const authApi = {
   },
 };
 
-// Transfer Planning API
+// Transfer Planning API - Routes to FastAPI backend
 export const transferApi = {
   analyzeRequirements: async (data: {
     current_institution: string;
@@ -90,18 +90,18 @@ export const transferApi = {
     major: string;
     academic_year: string;
   }) => {
-    return fetchApi<ApiResponse<any>>("/transfer/analyze", {
+    return fetchApi<ApiResponse<any>>("/backend/transfer/analyze", {
       method: "POST",
       body: JSON.stringify(data),
     });
   },
 
   getTransferProgress: async () => {
-    return fetchApi<ApiResponse<any>>("/transfer/progress");
+    return fetchApi<ApiResponse<any>>("/backend/transfer/progress");
   },
 };
 
-// Course Planning API
+// Course Planning API - Routes to FastAPI backend
 export const courseApi = {
   generatePlan: async (data: {
     current_quarter: string;
@@ -111,7 +111,7 @@ export const courseApi = {
     completed_courses: string[];
     transfer_requirements: any[];
   }) => {
-    return fetchApi<ApiResponse<any>>("/planning/generate", {
+    return fetchApi<ApiResponse<any>>("/backend/planning/generate", {
       method: "POST",
       body: JSON.stringify(data),
     });
@@ -133,7 +133,7 @@ export const courseApi = {
     }
     
     const query = searchParams.toString();
-    return fetchApi<PaginatedResponse<any>>(`/courses${query ? `?${query}` : ""}`);
+    return fetchApi<PaginatedResponse<any>>(`/backend/courses${query ? `?${query}` : ""}`);
   },
 };
 

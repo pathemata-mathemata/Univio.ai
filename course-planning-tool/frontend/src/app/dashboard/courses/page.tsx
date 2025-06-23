@@ -104,7 +104,7 @@ export default function CoursesPage(): JSX.Element {
 
     try {
       // Call API to analyze transfer requirements with all data
-      const response = await fetch('/api/v1/transfer/analyze-public', {
+      const response = await fetch('/api/backend/transfer/analyze-public', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

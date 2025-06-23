@@ -6,11 +6,25 @@ const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔧 Profile API - GET request started');
+    console.log('🔧 Environment check:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasAnonKey: !!supabaseAnonKey,
+      supabaseUrlLength: supabaseUrl?.length || 0
+    });
+
     // Get the session token from the request
     const authHeader = request.headers.get('authorization');
     const sessionToken = authHeader?.replace('Bearer ', '') || '';
 
+    console.log('🔧 Auth check:', {
+      hasAuthHeader: !!authHeader,
+      hasSessionToken: !!sessionToken,
+      tokenLength: sessionToken?.length || 0
+    });
+
     if (!sessionToken) {
+      console.log('❌ No session token provided');
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -27,36 +41,58 @@ export async function GET(request: NextRequest) {
     });
 
     // Verify the session token
+    console.log('🔧 Verifying session token...');
     const { data: { user }, error: userError } = await supabase.auth.getUser(sessionToken);
     
+    console.log('🔧 User verification result:', {
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      error: userError?.message
+    });
+    
     if (userError || !user) {
+      console.log('❌ User verification failed:', userError?.message);
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    // Get user profile from Supabase using RLS (Row Level Security)
-    const { data: userData, error: userDataError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    console.log('✅ User verified successfully:', user.email);
 
-    if (userDataError) {
-      console.error('User data fetch error:', userDataError);
-      return NextResponse.json(
-        { error: 'Failed to fetch user data' },
-        { status: 500 }
-      );
-    }
+    // Instead of querying custom 'users' table, use auth user data directly
+    const userData = {
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+      edu_email: user.user_metadata?.edu_email,
+      edu_email_verified: user.user_metadata?.edu_email_verified || false,
+      is_verified: user.email_confirmed_at ? true : false,
+      created_at: user.created_at,
+      updated_at: user.updated_at
+    };
+
+    console.log('🔧 User data prepared:', userData);
 
     // Get academic profile using RLS
+    console.log('🔧 Fetching academic profile for user:', user.id);
     const { data: academicProfile, error: academicError } = await supabase
       .from('academic_profiles')
       .select('*')
       .eq('user_id', user.id)
       .single();
+
+    console.log('🔧 Academic profile result:', {
+      hasProfile: !!academicProfile,
+      error: academicError?.message,
+      profileData: academicProfile
+    });
+
+    // Academic profile error is not critical - user might not have one yet  
+    if (academicError && academicError.code !== 'PGRST116') { // PGRST116 = no rows found
+      console.warn('⚠️ Academic profile fetch warning:', academicError.message);
+    }
 
     // Return profile data
     const profileData = {
@@ -64,6 +100,7 @@ export async function GET(request: NextRequest) {
       academic_profile: academicProfile || null
     };
 
+    console.log('✅ Profile data ready to return');
     return NextResponse.json(profileData);
 
   } catch (error) {
