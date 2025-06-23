@@ -231,7 +231,7 @@ export default function CoursesPage(): JSX.Element {
       <header className="flex items-center justify-between px-10 py-3 border-b border-[#e5e8ea]">
         <div className="flex items-center">
           <Image
-            src="/images/univio-logo.svg"
+            src="/images/univio-logo.png"
             alt="UniVio.AI"
             width={140}
             height={40}
@@ -262,7 +262,7 @@ export default function CoursesPage(): JSX.Element {
           </div>
 
           <Avatar className="w-10 h-10">
-            <AvatarImage src="/depth-4-frame-2.png" alt="User profile" />
+            <AvatarImage src="/images/univio-logo.png" alt="User profile" />
             <AvatarFallback>U</AvatarFallback>
           </Avatar>
         </div>
