@@ -114,11 +114,14 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    console.log('🔧 Profile UPDATE - PUT request started');
+    
     // Get the session token from the request
     const authHeader = request.headers.get('authorization');
     const sessionToken = authHeader?.replace('Bearer ', '') || '';
 
     if (!sessionToken) {
+      console.log('❌ No session token in PUT request');
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -135,17 +138,22 @@ export async function PUT(request: NextRequest) {
     });
 
     // Verify the session token
+    console.log('🔧 Verifying session token for PUT...');
     const { data: { user }, error: userError } = await supabase.auth.getUser(sessionToken);
     
     if (userError || !user) {
+      console.log('❌ User verification failed in PUT:', userError?.message);
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
+    console.log('✅ User verified for PUT:', user.email);
+
     // Get the request body
     const updateData = await request.json();
+    console.log('🔧 Update data received:', updateData);
 
     // Check if academic profile exists
     const { data: existingProfile, error: fetchError } = await supabase
