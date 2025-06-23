@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Create Supabase client with user session
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    const supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
       global: {
         headers: {
           Authorization: `Bearer ${sessionToken}`,
@@ -145,7 +145,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Create Supabase client with user session
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    const supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
       global: {
         headers: {
           Authorization: `Bearer ${sessionToken}`,
