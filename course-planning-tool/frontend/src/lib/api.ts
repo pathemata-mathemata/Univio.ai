@@ -1,6 +1,7 @@
 import { ApiResponse, PaginatedResponse } from "@/types";
+import { supabase } from "@/lib/supabase";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const API_BASE_URL = "/api"; // Use Next.js API routes instead of direct backend
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -23,20 +24,31 @@ async function fetchApi<T>(
     ...options,
   };
 
-  // Add authentication token if available
-  const token = localStorage.getItem("authToken");
-  if (token) {
-    config.headers = {
-      ...config.headers,
-      Authorization: `Bearer ${token}`,
-    };
+  // Add Supabase authentication token if available
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      config.headers = {
+        ...config.headers,
+        Authorization: `Bearer ${session.access_token}`,
+      };
+    }
+  } catch (error) {
+    console.warn("Could not get session for API request:", error);
   }
 
   try {
     const response = await fetch(url, config);
     
     if (!response.ok) {
-      throw new ApiError(response.status, `HTTP error! status: ${response.status}`);
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.detail || errorMessage;
+      } catch {
+        // If we can't parse the error response, use the default message
+      }
+      throw new ApiError(response.status, errorMessage);
     }
 
     const data = await response.json();

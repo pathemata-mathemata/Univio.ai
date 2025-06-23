@@ -26,170 +26,75 @@ export function ReviewStep({ data, onPrev, isLoading, setIsLoading }: ReviewStep
     setErrorMessage('');
 
     try {
-      console.log('🚀 Creating complete user account with all data...');
-      
-      // Step 1: Create Supabase auth user (this creates the user in auth.users automatically)
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      console.log('🚀 Submitting registration with all form data to unified API...');
+      console.log('📝 Registration data:', {
         email: data.personalEmail,
-        password: data.password,
-        options: {
-          data: {
-            first_name: data.firstName,
-            last_name: data.lastName,
-            edu_email: data.eduEmail,
-            edu_email_verified: data.eduEmailVerified,
-          }
-        }
+        firstName: data.firstName,
+        lastName: data.lastName,
+        eduEmail: data.eduEmail,
+        currentInstitution: data.currentInstitution,
+        currentMajor: data.currentMajor,
+        currentGPA: data.currentGPA,
+        expectedTransferYear: data.expectedTransferYear,
+        expectedTransferQuarter: data.expectedTransferQuarter,
+        targetInstitution: data.targetInstitution,
+        targetMajor: data.targetMajor
       });
 
-      if (authError) {
-        throw new Error(authError.message);
+      // Use the unified registration API that handles all database operations
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.personalEmail,
+          personalEmail: data.personalEmail, // For metadata
+          password: data.password,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          eduEmail: data.eduEmail,
+          currentInstitution: data.currentInstitution,
+          currentMajor: data.currentMajor,
+          currentGPA: data.currentGPA,
+          expectedTransferYear: data.expectedTransferYear,
+          expectedTransferQuarter: data.expectedTransferQuarter,
+          targetInstitution: data.targetInstitution,
+          targetMajor: data.targetMajor,
+          // Additional metadata for completeness
+          eduEmailVerified: data.eduEmailVerified,
+          personalEmailVerified: data.personalEmailVerified,
+          currentQuarter: data.currentQuarter,
+          currentYear: data.currentYear
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Registration failed');
       }
 
-      if (!authData.user) {
-        throw new Error('Failed to create user account');
-      }
+      console.log('✅ Registration API response:', result);
 
-      console.log('✅ Supabase auth user created:', authData.user.email);
+      // Now sign in the user to get a session
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: data.personalEmail,
+        password: data.password,
+      });
 
-      // Step 2: Create user record in custom users table
-      try {
-        const { error: userError } = await supabase
-          .from('users')
-          .insert({
-            id: authData.user.id,
-            email: data.personalEmail,
-            first_name: data.firstName,
-            last_name: data.lastName,
-            edu_email: data.eduEmail,
-            edu_email_verified: data.eduEmailVerified,
-            edu_email_verified_at: data.eduEmailVerified ? new Date().toISOString() : null,
-            is_active: true,
-            is_verified: data.personalEmailVerified,
-          });
-
-        if (userError) {
-          console.warn('⚠️ User table creation failed:', userError);
-          // Don't fail completely - auth user was created
-        } else {
-          console.log('✅ User record created in users table');
-        }
-      } catch (err) {
-        console.warn('⚠️ Users table insert failed:', err);
-      }
-
-      // Step 3: Create email verification records (if tables exist)
-      if (data.eduEmailVerified) {
-        try {
-          const { error: eduVerifyError } = await supabase
-            .from('email_verifications')
-            .insert({
-              email: data.eduEmail,
-              code: 'verified-during-registration',
-              expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-              attempts: 0,
-              verified: true,
-            });
-
-          if (eduVerifyError) {
-            console.warn('⚠️ Educational email verification record failed:', eduVerifyError);
-          } else {
-            console.log('✅ Educational email verification record created');
-          }
-        } catch (err) {
-          console.warn('⚠️ Email verification table may not exist:', err);
-        }
-      }
-
-      if (data.personalEmailVerified) {
-        try {
-          const { error: personalVerifyError } = await supabase
-            .from('email_verifications')
-            .insert({
-              email: data.personalEmail,
-              code: 'verified-during-registration',
-              expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-              attempts: 0,
-              verified: true,
-            });
-
-          if (personalVerifyError) {
-            console.warn('⚠️ Personal email verification record failed:', personalVerifyError);
-          } else {
-            console.log('✅ Personal email verification record created');
-          }
-        } catch (err) {
-          console.warn('⚠️ Email verification table may not exist:', err);
-        }
-      }
-
-      // Step 4: Create academic profile (using correct schema)
-      try {
-        const { error: profileError } = await supabase
-          .from('academic_profiles')
-          .insert({
-            user_id: authData.user.id,
-            current_institution_name: data.currentInstitution,
-            current_major_name: data.currentMajor,
-            current_gpa: data.currentGPA ? parseFloat(data.currentGPA) : null,
-            current_quarter: data.expectedTransferQuarter?.toLowerCase() || 'fall', // Use expected as current for now
-            current_year: new Date().getFullYear(), // Current year
-            expected_transfer_year: parseInt(data.expectedTransferYear),
-            expected_transfer_quarter: data.expectedTransferQuarter?.toLowerCase(),
-            target_institution_name: data.targetInstitution,
-            target_major_name: data.targetMajor,
-            max_units_per_quarter: 16, // Default value
-            preferred_study_intensity: 'moderate', // Default value
-            is_complete: true,
-            last_updated_by_user: authData.user.id,
-          });
-
-        if (profileError) {
-          console.warn('⚠️ Academic profile creation failed:', profileError);
-          // Don't fail the registration completely
-        } else {
-          console.log('✅ Academic profile created successfully');
-        }
-      } catch (err) {
-        console.warn('⚠️ Academic profiles table may not exist:', err);
-      }
-
-      // Step 5: Initialize dashboard metrics (if table exists)
-      try {
-        const { error: metricsError } = await supabase
-          .from('dashboard_metrics')
-          .insert({
-            user_id: authData.user.id,
-            overall_progress_percentage: 0,
-            completed_units: 0,
-            remaining_units: 60, // Typical transfer requirement
-            total_courses_completed: 0,
-            total_courses_planned: 0,
-            current_quarter_units: 0,
-            requirements_completed: 0,
-            requirements_total: 0,
-            on_track_for_transfer: true,
-            total_planning_sessions: 0,
-            days_since_last_activity: 0,
-            calculated_at: new Date().toISOString(),
-          });
-
-        if (metricsError) {
-          console.warn('⚠️ Dashboard metrics initialization failed:', metricsError);
-        } else {
-          console.log('✅ Dashboard metrics initialized');
-        }
-      } catch (err) {
-        console.warn('⚠️ Dashboard metrics table may not exist:', err);
-      }
-
-      // Step 6: Store session info
-      if (authData.session) {
+      if (signInError) {
+        console.warn('⚠️ Auto sign-in failed:', signInError.message);
+        // Registration was successful, just redirect to login
+        console.log('📧 Please sign in with your new account');
+      } else if (authData.session) {
+        // Store session info for automatic login
         localStorage.setItem('supabase_session', JSON.stringify(authData.session));
         localStorage.setItem('access_token', authData.session.access_token);
+        console.log('✅ Auto sign-in successful');
       }
 
-      console.log('🎉 Registration completed successfully! User created in auth.users and custom tables populated.');
+      console.log('🎉 Complete registration successful! All academic data stored in database.');
       setRegistrationStatus('success');
       
       // Redirect to intended page or dashboard after successful registration

@@ -40,6 +40,10 @@ export default function LoginPage() {
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
+        options: {
+          // For Render deployment, use the callback route for proper session handling
+          redirectTo: `${window.location.origin}/api/auth/callback`
+        }
       });
 
       if (authError) {
@@ -70,8 +74,14 @@ export default function LoginPage() {
       }
       
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Invalid email or password. Please try again.');
-      console.error('Login error:', error);
+      console.error('❌ Login error details:', error);
+      console.error('❌ Error type:', typeof error);
+      console.error('❌ Error constructor:', error?.constructor?.name);
+      if (error instanceof Error) {
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Error stack:', error.stack);
+      }
+      setError(error instanceof Error ? error.message : 'Network error occurred. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }

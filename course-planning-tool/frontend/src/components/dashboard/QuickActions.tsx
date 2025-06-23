@@ -17,14 +17,14 @@ export function QuickActions(): JSX.Element {
       title: "View Schedule",
       description: "See your quarterly course schedule",
       icon: <Calendar className="h-6 w-6" />,
-      href: "/dashboard/schedule",
+      href: "/dashboard/progress",
       variant: "outline" as const,
     },
     {
       title: "Add Completed Courses",
       description: "Enter courses you've already completed",
       icon: <Plus className="h-6 w-6" />,
-      href: "/dashboard/courses/completed",
+      href: "/dashboard/courses",
       variant: "outline" as const,
     },
     {
