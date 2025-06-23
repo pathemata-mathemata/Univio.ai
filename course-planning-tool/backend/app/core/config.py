@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     PERPLEXITY_API_KEY: Optional[str] = None
     
     # CORS
-    BACKEND_CORS_ORIGINS: str = "http://localhost:3000"
+    BACKEND_CORS_ORIGINS: str = "http://localhost:3000,https://univio.ai,https://univio-frontend.onrender.com"
     ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1", "*"]
     
     # Chrome Driver for Selenium
