@@ -33,10 +33,24 @@ const nextConfig = {
   async rewrites() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://univio-backend.onrender.com';
     return [
+      // Only rewrite specific backend API routes, not all /api/* routes
       {
-        source: '/api/:path*',
-        destination: `${apiUrl}/api/:path*`,
+        source: '/api/v1/:path*',
+        destination: `${apiUrl}/api/v1/:path*`,
       },
+      {
+        source: '/api/courses/:path*',
+        destination: `${apiUrl}/api/v1/courses/:path*`,
+      },
+      {
+        source: '/api/planning/:path*',
+        destination: `${apiUrl}/api/v1/planning/:path*`,
+      },
+      {
+        source: '/api/transfer/:path*',
+        destination: `${apiUrl}/api/v1/transfer/:path*`,
+      },
+      // Keep /api/auth/*, /api/users/*, etc. as local Next.js API routes
     ]
   },
 }
