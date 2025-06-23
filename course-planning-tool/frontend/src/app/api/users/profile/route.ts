@@ -181,6 +181,7 @@ export async function PUT(request: NextRequest) {
           current_institution_name: updateData.current_institution,
           current_major_name: updateData.current_major,
           target_institution_name: updateData.target_institution,
+          target_major_name: updateData.current_major, // Use current major as target for now
           expected_transfer_year: updateData.expected_transfer_year,
           expected_transfer_quarter: updateData.expected_transfer_quarter,
           updated_at: new Date().toISOString()
@@ -207,6 +208,7 @@ export async function PUT(request: NextRequest) {
           current_institution_name: updateData.current_institution,
           current_major_name: updateData.current_major,
           target_institution_name: updateData.target_institution,
+          target_major_name: updateData.current_major, // Use current major as target for now
           expected_transfer_year: updateData.expected_transfer_year,
           expected_transfer_quarter: updateData.expected_transfer_quarter,
           is_complete: true,

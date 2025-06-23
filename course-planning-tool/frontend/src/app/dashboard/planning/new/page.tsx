@@ -30,15 +30,20 @@ interface UserProfile {
   };
   academic_profile?: {
     id: number;
-    current_institution: string;
-    current_major: string;
+    current_institution?: string;  // Legacy field
+    current_institution_name?: string;  // Actual field in DB
+    current_major?: string;  // Legacy field
+    current_major_name?: string;  // Actual field in DB
     current_quarter?: string;
-    current_year: number;
-    target_institution: string;
-    target_major: string;
+    current_year?: number;
+    target_institution?: string;  // Legacy field
+    target_institution_name?: string;  // Actual field in DB
+    target_major?: string;  // Legacy field
+    target_major_name?: string;  // Actual field in DB
     expected_transfer_year: number;
     expected_transfer_quarter?: string;
-    max_credits_per_quarter: number;
+    max_credits_per_quarter?: number;
+    max_units_per_quarter?: number;  // Alternative field name
     created_at?: string;
     updated_at?: string;
   };
@@ -76,9 +81,9 @@ const TransferPlanningPage = (): JSX.Element => {
         setFormData({
           year: academicProfile.expected_transfer_year?.toString() || "",
           quarter: academicProfile.expected_transfer_quarter || "",
-          major: academicProfile.current_major || "",
-          institution: academicProfile.current_institution || "",
-          transfer: academicProfile.target_institution || "",
+          major: academicProfile.current_major_name || academicProfile.current_major || "",
+          institution: academicProfile.current_institution_name || academicProfile.current_institution || "",
+          transfer: academicProfile.target_institution_name || academicProfile.target_institution || "",
         });
       }
     } catch (error) {
