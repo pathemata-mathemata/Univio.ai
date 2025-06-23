@@ -110,14 +110,17 @@ export async function GET(request: NextRequest) {
       console.warn('⚠️ Academic profile fetch warning:', academicError.message);
     }
 
-    // Return profile data
+    // Return profile data in ApiResponse format
     const profileData = {
       user: userData,
       academic_profile: academicProfile || null
     };
 
     console.log('✅ Profile data ready to return');
-    return NextResponse.json(profileData);
+    return NextResponse.json({
+      data: profileData,
+      success: true
+    });
 
   } catch (error) {
     console.error('❌ Profile API error:', error);
@@ -236,11 +239,14 @@ export async function PUT(request: NextRequest) {
       academicProfileData = data;
     }
 
-    // Return success response
+    // Return success response in ApiResponse format
     return NextResponse.json({
-      success: true,
-      message: 'Profile updated successfully',
-      academic_profile: academicProfileData
+      data: {
+        success: true,
+        message: 'Profile updated successfully',
+        academic_profile: academicProfileData
+      },
+      success: true
     });
 
   } catch (error) {
