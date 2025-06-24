@@ -1,7 +1,8 @@
 import { ApiResponse, PaginatedResponse } from "@/types";
 import { supabase } from "@/lib/supabase";
 
-const API_BASE_URL = "/api"; // Use Next.js API routes instead of direct backend
+// Use Next.js API routes for all requests - let Next.js handle the routing
+const API_BASE_URL = "/api";
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -15,6 +16,9 @@ async function fetchApi<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
+  
+  // Debug logging
+  console.log(`🔄 API Request: ${options.method || 'GET'} ${url}`);
   
   const config: RequestInit = {
     headers: {
@@ -32,6 +36,9 @@ async function fetchApi<T>(
         ...config.headers,
         Authorization: `Bearer ${session.access_token}`,
       };
+      console.log(`🔑 Added auth token for ${url}`);
+    } else {
+      console.log(`⚠️ No auth token available for ${url}`);
     }
   } catch (error) {
     console.warn("Could not get session for API request:", error);
@@ -40,20 +47,26 @@ async function fetchApi<T>(
   try {
     const response = await fetch(url, config);
     
+    console.log(`📡 API Response: ${response.status} ${response.statusText} for ${url}`);
+    
     if (!response.ok) {
       let errorMessage = `HTTP error! status: ${response.status}`;
       try {
         const errorData = await response.json();
         errorMessage = errorData.error || errorData.detail || errorMessage;
+        console.error(`❌ API Error Details:`, errorData);
       } catch {
         // If we can't parse the error response, use the default message
+        console.error(`❌ API Error: Could not parse error response for ${url}`);
       }
       throw new ApiError(response.status, errorMessage);
     }
 
     const data = await response.json();
+    console.log(`✅ API Success for ${url}:`, data);
     return data;
   } catch (error) {
+    console.error(`💥 API Request Failed for ${url}:`, error);
     if (error instanceof ApiError) {
       throw error;
     }
@@ -61,7 +74,7 @@ async function fetchApi<T>(
   }
 }
 
-// Auth API
+// Auth API - Uses Next.js API routes
 export const authApi = {
   login: async (email: string, password: string) => {
     return fetchApi<{ token: string; user: any }>("/auth/login", {
@@ -82,7 +95,7 @@ export const authApi = {
   },
 };
 
-// Transfer Planning API - Routes to FastAPI backend
+// Transfer Planning API - Routes through Next.js rewrites to FastAPI backend
 export const transferApi = {
   analyzeRequirements: async (data: {
     current_institution: string;
@@ -96,12 +109,26 @@ export const transferApi = {
     });
   },
 
+  analyzePublic: async (data: {
+    target_transfer_quarter: string;
+    current_planning_quarter: string;
+    current_major: string;
+    current_institution: string;
+    intended_transfer_institution: string;
+    completed_courses: any[];
+  }) => {
+    return fetchApi<ApiResponse<any>>("/backend/transfer/analyze-public", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
   getTransferProgress: async () => {
     return fetchApi<ApiResponse<any>>("/backend/transfer/progress");
   },
 };
 
-// Course Planning API - Routes to FastAPI backend
+// Course Planning API - Routes through Next.js rewrites to FastAPI backend  
 export const courseApi = {
   generatePlan: async (data: {
     current_quarter: string;
@@ -137,7 +164,7 @@ export const courseApi = {
   },
 };
 
-// Profile API
+// Profile API - Uses Next.js API routes
 export const profileApi = {
   getProfile: async () => {
     return fetchApi<ApiResponse<any>>("/users/profile");

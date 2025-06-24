@@ -16,6 +16,7 @@ import { Search, Trash2 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { transferApi } from "@/lib/api";
 
 interface Course {
   id: string;
@@ -96,7 +97,6 @@ export default function CoursesPage(): JSX.Element {
     };
     
     console.log('Full Request Data:', requestData);
-    console.log('API URL:', '/api/v1/transfer/analyze-public');
 
     // Start loading state
     setIsLoading(true);
@@ -104,29 +104,18 @@ export default function CoursesPage(): JSX.Element {
 
     try {
       // Call API to analyze transfer requirements with all data
-      const response = await fetch('/api/backend/transfer/analyze-public', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
+      const result = await transferApi.analyzePublic(requestData);
 
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('API Response:', result);
+      console.log('API Response:', result);
+      
+      if (result.success) {
         // Store the complete analysis result
         localStorage.setItem('transferAnalysis', JSON.stringify(result));
         setIsLoading(false);
         router.push('/dashboard/progress');
       } else {
-        const errorText = await response.text();
-        console.error('API Error Response:', errorText);
         setIsLoading(false);
-        throw new Error(`Failed to analyze transfer requirements: ${response.status} - ${errorText}`);
+        throw new Error(`Failed to analyze transfer requirements: ${result.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error:', error);
