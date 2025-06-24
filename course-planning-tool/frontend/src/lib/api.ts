@@ -28,6 +28,14 @@ async function fetchApi<T>(
     ...options,
   };
 
+  // Add timeout for long-running requests (like ASSIST.org scraping)
+  const timeoutMs = endpoint.includes('/backend/transfer/analyze') ? 300000 : 30000; // 5 minutes for analysis, 30 seconds for others
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  config.signal = controller.signal;
+
   // Add Supabase authentication token if available
   try {
     const { data: { session } } = await supabase.auth.getSession();
@@ -46,6 +54,7 @@ async function fetchApi<T>(
 
   try {
     const response = await fetch(url, config);
+    clearTimeout(timeoutId);
     
     console.log(`📡 API Response: ${response.status} ${response.statusText} for ${url}`);
     
@@ -66,7 +75,13 @@ async function fetchApi<T>(
     console.log(`✅ API Success for ${url}:`, data);
     return data;
   } catch (error) {
+    clearTimeout(timeoutId);
     console.error(`💥 API Request Failed for ${url}:`, error);
+    
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new ApiError(408, `Request timeout after ${timeoutMs / 1000} seconds`);
+    }
+    
     if (error instanceof ApiError) {
       throw error;
     }

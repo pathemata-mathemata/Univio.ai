@@ -41,6 +41,13 @@ const nextConfig = {
       // All other /api/* routes stay as Next.js API routes
     ]
   },
+  // Experimental features for better proxy handling and sharp support
+  experimental: {
+    proxyTimeout: 300000, // 5 minutes for ASSIST.org scraping
+    outputFileTracingIncludes: {
+      '/api/**/*': ['./node_modules/**/*.wasm', './node_modules/**/*.node'],
+    },
+  },
 }
 
 module.exports = nextConfig 
