@@ -48,6 +48,8 @@ export async function GET(request: NextRequest) {
       id: user.id,
       email: user.email,
       name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+      bio: user.user_metadata?.bio || '',
+      profile_photo: user.user_metadata?.profile_photo || '',
       edu_email: user.user_metadata?.edu_email,
       edu_email_verified: user.user_metadata?.edu_email_verified || false,
       is_verified: user.email_confirmed_at ? true : false,
@@ -121,6 +123,58 @@ export async function PUT(request: NextRequest) {
 
     // Get the request body
     const updateData = await request.json();
+
+    // Handle user metadata updates (name, bio, profile_photo)
+    if (updateData.name || updateData.bio || updateData.profilePhoto) {
+      const currentMetadata = user.user_metadata || {};
+      const newMetadata = {
+        ...currentMetadata,
+        ...(updateData.name && { name: updateData.name, full_name: updateData.name }),
+        ...(updateData.bio && { bio: updateData.bio }),
+        ...(updateData.profilePhoto && { profile_photo: updateData.profilePhoto })
+      };
+
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: newMetadata
+      });
+
+      if (metadataError) {
+        console.error('User metadata update error:', metadataError);
+        return NextResponse.json(
+          { error: 'Failed to update profile information' },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Skip academic profile update if only user metadata is being updated
+    if (!updateData.current_institution && !updateData.current_major && 
+        !updateData.target_institution && !updateData.expected_transfer_year && 
+        !updateData.expected_transfer_quarter) {
+      
+      // Return updated user data
+      const updatedUserData = {
+        id: user.id,
+        email: user.email,
+        name: updateData.name || user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+        bio: updateData.bio || user.user_metadata?.bio,
+        profile_photo: updateData.profilePhoto || user.user_metadata?.profile_photo,
+        edu_email: user.user_metadata?.edu_email,
+        edu_email_verified: user.user_metadata?.edu_email_verified || false,
+        is_verified: user.email_confirmed_at ? true : false,
+        created_at: user.created_at,
+        updated_at: new Date().toISOString()
+      };
+
+      return NextResponse.json({
+        data: {
+          success: true,
+          message: 'Profile updated successfully',
+          user: updatedUserData
+        },
+        success: true
+      });
+    }
 
     // Check if academic profile exists
     const { data: existingProfile, error: fetchError } = await supabase

@@ -5,6 +5,7 @@ import { profileApi } from "@/lib/api";
 import TransferPlanningSection from "@/components/dashboard/TransferPlanningSection";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface UserProfile {
   user: {
@@ -19,15 +20,20 @@ interface UserProfile {
   };
   academic_profile?: {
     id: number;
-    current_institution: string;
-    current_major: string;
+    current_institution?: string;
+    current_institution_name?: string;
+    current_major?: string;
+    current_major_name?: string;
     current_quarter?: string;
-    current_year: number;
-    target_institution: string;
-    target_major: string;
+    current_year?: number;
+    target_institution?: string;
+    target_institution_name?: string;
+    target_major?: string;
+    target_major_name?: string;
     expected_transfer_year: number;
     expected_transfer_quarter?: string;
-    max_credits_per_quarter: number;
+    max_credits_per_quarter?: number;
+    max_units_per_quarter?: number;
     created_at?: string;
     updated_at?: string;
   };
@@ -42,14 +48,19 @@ export default function SettingsPage() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
+        console.log('🔄 Fetching profile data...');
         const response = await profileApi.getProfile();
+        console.log('📊 Profile API response:', response);
+        
         if (response.success) {
           setProfileData(response.data);
+          console.log('✅ Profile data loaded:', response.data);
         } else {
+          console.error('❌ Profile API returned error:', response);
           setError("Failed to load profile data");
         }
       } catch (err) {
-        console.error("Error fetching profile:", err);
+        console.error("❌ Error fetching profile:", err);
         setError("Failed to load profile data");
       } finally {
         setLoading(false);
@@ -96,128 +107,31 @@ export default function SettingsPage() {
                 </Link>
                 <div className="flex flex-col w-72">
                   <h1 className="font-sans font-bold text-[32px] leading-10 text-[#111416] tracking-[0]">
-                    My Profile
+                    Settings
                   </h1>
+                  <p className="text-[#607589] text-sm mt-1">
+                    Manage your preferences and course planning settings
+                  </p>
                 </div>
               </section>
 
               <div className="px-4 w-full">
                 <div className="flex flex-col gap-6 w-full">
-                  {/* Profile Information Section */}
-                  <section className="flex flex-col gap-4 p-6 border border-[#dbe0e5] rounded-lg">
-                    <h2 className="font-semibold text-xl text-[#111416]">Profile Information</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-2">
-                        <label className="font-medium text-[#111416] text-sm">Full Name</label>
-                        <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                          <p className="text-[#111416] text-sm">
-                            {profileData?.user.name || "Not provided"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="font-medium text-[#111416] text-sm">Email</label>
-                        <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                          <p className="text-[#111416] text-sm">
-                            {profileData?.user.email || "Not provided"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="font-medium text-[#111416] text-sm">Educational Email</label>
-                        <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                          <p className="text-[#111416] text-sm">
-                            {profileData?.user.edu_email || "Not provided"}
-                            {profileData?.user.edu_email && (
-                              <span className={`ml-2 text-xs px-2 py-1 rounded ${
-                                profileData.user.edu_email_verified 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-yellow-100 text-yellow-800'
-                              }`}>
-                                {profileData.user.edu_email_verified ? 'Verified' : 'Not Verified'}
-                              </span>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="font-medium text-[#111416] text-sm">Account Status</label>
-                        <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                          <p className="text-[#111416] text-sm">
-                            <span className={`px-2 py-1 rounded text-xs ${
-                              profileData?.user.is_verified 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {profileData?.user.is_verified ? 'Verified' : 'Pending Verification'}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-
-                  {/* Academic Information Section */}
-                  <section className="flex flex-col gap-4 p-6 border border-[#dbe0e5] rounded-lg">
-                    <h2 className="font-semibold text-xl text-[#111416]">Academic Information</h2>
-                    {profileData?.academic_profile ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-2">
-                          <label className="font-medium text-[#111416] text-sm">Current Institution</label>
-                          <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                            <p className="text-[#111416] text-sm">
-                              {profileData.academic_profile.current_institution}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <label className="font-medium text-[#111416] text-sm">Current Major</label>
-                          <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                            <p className="text-[#111416] text-sm">
-                              {profileData.academic_profile.current_major}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <label className="font-medium text-[#111416] text-sm">Target Institution</label>
-                          <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                            <p className="text-[#111416] text-sm">
-                              {profileData.academic_profile.target_institution}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <label className="font-medium text-[#111416] text-sm">Target Major</label>
-                          <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                            <p className="text-[#111416] text-sm">
-                              {profileData.academic_profile.target_major}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <label className="font-medium text-[#111416] text-sm">Current Academic Year</label>
-                          <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                            <p className="text-[#111416] text-sm">
-                              {profileData.academic_profile.current_quarter} {profileData.academic_profile.current_year}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <label className="font-medium text-[#111416] text-sm">Expected Transfer</label>
-                          <div className="p-3 bg-[#f8f9fa] rounded-lg border border-[#dbe0e5]">
-                            <p className="text-[#111416] text-sm">
-                              {profileData.academic_profile.expected_transfer_quarter} {profileData.academic_profile.expected_transfer_year}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <p className="text-yellow-800 text-sm">
-                          Academic profile not set up yet. Please complete your transfer planning to add this information.
+                  {/* Quick Links to Profile */}
+                  <section className="flex flex-col gap-4 p-6 border border-[#dbe0e5] rounded-lg bg-blue-50 border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-lg text-[#111416]">Need to update your profile information?</h3>
+                        <p className="text-[#607589] text-sm mt-1">
+                          View and edit your personal and academic information on your profile page.
                         </p>
                       </div>
-                    )}
+                      <Link href="/dashboard/profile">
+                        <Button variant="outline" className="flex items-center gap-2 bg-white">
+                          👤 View Profile
+                        </Button>
+                      </Link>
+                    </div>
                   </section>
 
                   {/* Academic Preferences Section */}
@@ -228,12 +142,22 @@ export default function SettingsPage() {
                         <label className="font-medium text-[#111416] text-sm">Max Credits Per Quarter</label>
                         <select 
                           className="p-3 bg-white rounded-lg border border-[#dbe0e5] text-[#111416]"
-                          defaultValue={profileData?.academic_profile?.max_credits_per_quarter || 15}
+                          defaultValue={profileData?.academic_profile?.max_credits_per_quarter || profileData?.academic_profile?.max_units_per_quarter || 15}
                         >
-                          <option value="12">12 Credits</option>
-                          <option value="15">15 Credits</option>
-                          <option value="18">18 Credits</option>
-                          <option value="21">21 Credits</option>
+                          <option value="6">6 Credits (Part-time)</option>
+                          <option value="9">9 Credits (Part-time)</option>
+                          <option value="12">12 Credits (Full-time minimum)</option>
+                          <option value="13">13 Credits</option>
+                          <option value="14">14 Credits</option>
+                          <option value="15">15 Credits (Standard)</option>
+                          <option value="16">16 Credits</option>
+                          <option value="17">17 Credits</option>
+                          <option value="18">18 Credits (Heavy load)</option>
+                          <option value="19">19 Credits</option>
+                          <option value="20">20 Credits</option>
+                          <option value="21">21 Credits (Maximum)</option>
+                          <option value="22">22 Credits (Overload)</option>
+                          <option value="24">24 Credits (Summer intensive)</option>
                         </select>
                       </div>
                       <div className="flex flex-col gap-2">
@@ -315,6 +239,8 @@ export default function SettingsPage() {
                       </div>
                     </div>
                   </section>
+
+
 
                   {/* Save Settings Button */}
                   <div className="flex justify-end px-4 py-4">

@@ -16,7 +16,7 @@ export function Header(): JSX.Element {
     { title: "AI Scheduler", href: "/dashboard/planning/new", available: true },
     { title: "Find Professor", href: "#", available: false },
     { title: "Find Classmate", href: "#", available: false },
-    { title: "My Profile", href: "/dashboard/settings", available: true },
+    { title: "My Profile", href: "/dashboard/profile", available: true },
   ];
 
   const handleComingSoonClick = (title: string) => {
