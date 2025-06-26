@@ -28,6 +28,27 @@ const nextConfig = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, 'src'),
     }
+    
+    // Suppress Supabase realtime warnings
+    config.module.parser = {
+      ...config.module.parser,
+      javascript: {
+        commonjsMagicComments: true,
+      },
+    }
+    
+    // Ignore specific warnings from Supabase realtime client
+    config.ignoreWarnings = [
+      { message: /Critical dependency: the request of a dependency is an expression/ },
+    ]
+    
+    // Optimize Supabase imports for server-side usage
+    if (config.isServer) {
+      config.externals.push({
+        '@supabase/realtime-js': '@supabase/realtime-js',
+      })
+    }
+    
     return config
   },
   async rewrites() {

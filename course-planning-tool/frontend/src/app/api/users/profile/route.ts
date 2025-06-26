@@ -4,11 +4,26 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
-// Environment variables validated
+// Create a server-side client factory without realtime
+function createServerClient(accessToken?: string) {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase configuration');
+  }
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ Missing Supabase environment variables');
-  throw new Error('Missing Supabase configuration');
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+    db: {
+      schema: 'public',
+    },
+    global: accessToken ? {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    } : undefined,
+  });
 }
 
 export async function GET(request: NextRequest) {
@@ -25,13 +40,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Create Supabase client with user session
-    const supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${sessionToken}`,
-        },
-      },
-    });
+    const supabase = createServerClient(sessionToken);
 
     // Verify the session token
     const { data: { user }, error: userError } = await supabase.auth.getUser(sessionToken);
@@ -103,13 +112,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Create Supabase client with user session
-    const supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${sessionToken}`,
-        },
-      },
-    });
+    const supabase = createServerClient(sessionToken);
 
     // Verify the session token
     const { data: { user }, error: userError } = await supabase.auth.getUser(sessionToken);
