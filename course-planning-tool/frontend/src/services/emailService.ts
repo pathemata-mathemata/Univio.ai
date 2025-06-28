@@ -25,6 +25,12 @@ interface PasswordResetEmailData {
   firstName?: string;
 }
 
+/**
+ * EMAIL TEMPLATE STRATEGY:
+ * - Verification emails: Can use lightweight templates for faster delivery (controlled by USE_FAST_VERIFICATION_TEMPLATES)
+ * - Welcome emails: Always use elegant templates for better branding and user experience
+ * - Other emails: Use appropriate template style based on purpose
+ */
 export class EmailService {
   /**
    * Get logo URL for emails - using a reliable public URL
@@ -49,13 +55,16 @@ export class EmailService {
         ? 'Verify Your Student Email - UniVio' 
         : 'Verify Your Personal Email - UniVio';
 
+      // Use lightweight templates for VERIFICATION emails only (faster delivery)
+      const useFastVerificationTemplates = process.env.USE_FAST_VERIFICATION_TEMPLATES === 'true';
+      
       const emailData: any = {
         from: `UniVio <noreply@univio.ai>`,
         to: [to],
         subject,
         html: isEduEmail 
-          ? this.getEduVerificationEmailTemplate(code, firstName)
-          : this.getPersonalVerificationEmailTemplate(code, firstName),
+          ? (useFastVerificationTemplates ? this.getFastEduVerificationEmailTemplate(code, firstName) : this.getEduVerificationEmailTemplate(code, firstName))
+          : (useFastVerificationTemplates ? this.getFastPersonalVerificationEmailTemplate(code, firstName) : this.getPersonalVerificationEmailTemplate(code, firstName)),
         text: `Your UniVio verification code is: ${code}. This code will expire in 10 minutes.`,
       };
 
@@ -695,5 +704,77 @@ export class EmailService {
     </body>
     </html>
     `;
+  }
+
+  /**
+   * FAST: Lightweight template for educational email verification
+   */
+  private static getFastEduVerificationEmailTemplate(code: string, firstName?: string): string {
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Verify Your Email - UniVio</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: #2B4F7D; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 24px;">UNIVIO.AI</h1>
+        <p style="margin: 5px 0 0 0;">Verify Your Student Email</p>
+      </div>
+      
+      <div style="background: white; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 8px 8px;">
+        <h2>Hi ${firstName || 'there'}!</h2>
+        
+        <p>Please use this code to verify your student email:</p>
+        
+        <div style="background: #f8f9fa; border: 2px solid #2B4F7D; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+          <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px; font-family: monospace;">${code}</div>
+          <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">Expires in 10 minutes</p>
+        </div>
+        
+        <p style="color: #666; font-size: 14px;">This confirms your student status and unlocks UniVio features.</p>
+        
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+        <p style="color: #999; font-size: 12px; text-align: center;">© 2024 UniVio. All rights reserved.</p>
+      </div>
+    </body>
+    </html>`;
+  }
+
+  /**
+   * FAST: Lightweight template for personal email verification
+   */
+  private static getFastPersonalVerificationEmailTemplate(code: string, firstName?: string): string {
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Verify Your Personal Email - UniVio</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: #0ea5e9; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 24px;">UNIVIO.AI</h1>
+        <p style="margin: 5px 0 0 0;">Verify Personal Email</p>
+      </div>
+      
+      <div style="background: white; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 8px 8px;">
+        <h2>Hi ${firstName || 'there'}!</h2>
+        
+        <p>Please use this code to verify your personal email:</p>
+        
+        <div style="background: #f8f9fa; border: 2px solid #0ea5e9; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+          <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px; font-family: monospace;">${code}</div>
+          <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">Expires in 10 minutes</p>
+        </div>
+        
+        <p style="color: #666; font-size: 14px;">This secures your account and enables important notifications.</p>
+        
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+        <p style="color: #999; font-size: 12px; text-align: center;">© 2024 UniVio. All rights reserved.</p>
+      </div>
+    </body>
+    </html>`;
   }
 } 

@@ -31,11 +31,11 @@ export async function POST(request: NextRequest) {
     const code = generateVerificationCode();
 
     // Store the code in database (10 minutes expiry)
-    const { success: storeSuccess, error: storeError } = await DatabaseService.storeVerificationCode(
-      eduEmail, 
-      code, 
-      10
-    );
+    // Use fast method if enabled for quicker email delivery
+    const useFastMethod = process.env.USE_FAST_VERIFICATION_TEMPLATES === 'true';
+    const { success: storeSuccess, error: storeError } = useFastMethod
+      ? await DatabaseService.storeVerificationCodeFast(eduEmail, code, 10)
+      : await DatabaseService.storeVerificationCode(eduEmail, code, 10);
 
     if (!storeSuccess) {
       console.error('❌ Failed to store verification code:', storeError);

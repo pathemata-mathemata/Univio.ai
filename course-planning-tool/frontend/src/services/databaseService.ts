@@ -133,6 +133,45 @@ export class DatabaseService {
   // ===== EMAIL VERIFICATION OPERATIONS =====
 
   /**
+   * FAST: Store email verification code with minimal database queries
+   * Use this for faster email sending when rate limiting is less critical
+   */
+  static async storeVerificationCodeFast(
+    email: string, 
+    code: string, 
+    expiryMinutes: number
+  ): Promise<{ success: boolean; error: string | null }> {
+    try {
+      const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000).toISOString()
+      
+      // Simple upsert - much faster than multiple queries
+      const { error } = await supabaseAdmin
+        .from('email_verifications')
+        .upsert({
+          email,
+          code,
+          expires_at: expiresAt,
+          attempts: 0,
+          verified: false,
+          created_at: new Date().toISOString()
+        }, {
+          onConflict: 'email'
+        })
+
+      if (error) {
+        console.error('❌ Database error storing verification code (fast):', error)
+        return { success: false, error: error.message }
+      }
+
+      console.log('✅ Verification code stored successfully (fast method)')
+      return { success: true, error: null }
+    } catch (error) {
+      console.error('❌ Unexpected error storing verification code (fast):', error)
+      return { success: false, error: 'Failed to store verification code' }
+    }
+  }
+
+  /**
    * Store email verification code with proper rate limiting
    * Rate limits: Max 2 codes in 30 seconds, Max 5 codes per hour
    */
