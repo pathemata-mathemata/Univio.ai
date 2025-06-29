@@ -306,11 +306,11 @@ export default function Home() {
 
             {/* Legal - Center Column */}
             <div className="flex flex-col items-center">
-              <h4 className="text-white font-semibold mb-4">Legal</h4>
-              <ul className="space-y-3">
-                <li><Link href="/privacy" className="text-gray-400 hover:text-blue-400 transition-colors text-sm">Privacy</Link></li>
-                <li><Link href="/terms" className="text-gray-400 hover:text-blue-400 transition-colors text-sm">Terms</Link></li>
-                <li><Link href="/cookies" className="text-gray-400 hover:text-blue-400 transition-colors text-sm">Cookies</Link></li>
+              <h4 className="text-white font-semibold mb-4 text-center">Legal</h4>
+              <ul className="space-y-3 text-center">
+                <li><Link href="/privacy" className="text-gray-400 hover:text-blue-400 transition-colors text-sm block">Privacy</Link></li>
+                <li><Link href="/terms" className="text-gray-400 hover:text-blue-400 transition-colors text-sm block">Terms</Link></li>
+                <li><Link href="/cookies" className="text-gray-400 hover:text-blue-400 transition-colors text-sm block">Cookies</Link></li>
               </ul>
             </div>
 
