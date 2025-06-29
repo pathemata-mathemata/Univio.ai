@@ -6,9 +6,9 @@ import SEOStructuredData from '@/components/SEOStructuredData'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'UniVio - AI-Powered Course Planning',
-  description: 'Navigate your community college to university transfer journey with intelligent course planning, real-time requirements analysis, and personalized recommendations.',
-  keywords: ['college transfer', 'course planning', 'AI education', 'university transfer', 'community college', 'academic planning', 'ASSIST.org', 'transfer requirements'],
+  title: 'UniVio - AI-Powered Course Planning for California Community College Transfers',
+  description: 'Navigate your California community college to UC/CSU transfer journey with intelligent course planning, real-time ASSIST.org integration, and personalized recommendations.',
+  keywords: ['California community college transfer', 'UC transfer', 'CSU transfer', 'ASSIST.org', 'course planning', 'AI education', 'university transfer', 'community college', 'academic planning', 'transfer requirements', 'California students'],
   authors: [{ name: 'UniVio Team' }],
   creator: 'UniVio',
   publisher: 'UniVio',
@@ -34,14 +34,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.ico' },
-      { url: '/images/univio-logo.png', sizes: '192x192', type: 'image/png' },
+      { url: '/favicon.ico', sizes: '16x16 32x32 48x48', type: 'image/x-icon' },
       { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
       { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
     ],
     shortcut: '/favicon.ico',
     apple: [
-      { url: '/apple-touch-icon.png' },
       { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
   },
@@ -50,22 +48,22 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://univio.ai',
-    title: 'UniVio - AI-Powered Course Planning',
-    description: 'Navigate your community college to university transfer journey with intelligent course planning, real-time requirements analysis, and personalized recommendations.',
+    title: 'UniVio - AI-Powered Course Planning for California Community College Transfers',
+    description: 'Navigate your California community college to UC/CSU transfer journey with intelligent course planning, real-time ASSIST.org integration, and personalized recommendations.',
     siteName: 'UniVio',
     images: [
       {
         url: '/images/univio-logo.png',
         width: 1200,
         height: 630,
-        alt: 'UniVio - AI-Powered Course Planning',
+        alt: 'UniVio - AI-Powered Course Planning for California Students',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'UniVio - AI-Powered Course Planning',
-    description: 'Navigate your community college to university transfer journey with intelligent course planning, real-time requirements analysis, and personalized recommendations.',
+    title: 'UniVio - AI-Powered Course Planning for California Community College Transfers',
+    description: 'Navigate your California community college to UC/CSU transfer journey with intelligent course planning, real-time ASSIST.org integration, and personalized recommendations.',
     images: ['/images/univio-logo.png'],
     creator: '@univio_ai',
   },
