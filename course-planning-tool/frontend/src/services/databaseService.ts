@@ -143,19 +143,24 @@ export class DatabaseService {
   ): Promise<{ success: boolean; error: string | null }> {
     try {
       const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000).toISOString()
+      const now = new Date().toISOString()
       
-      // Simple upsert - much faster than multiple queries
+      // First, clean up any existing codes for this email (to simulate upsert behavior)
+      await supabaseAdmin
+        .from('email_verifications')
+        .delete()
+        .eq('email', email)
+
+      // Insert new verification code
       const { error } = await supabaseAdmin
         .from('email_verifications')
-        .upsert({
+        .insert({
           email,
           code,
           expires_at: expiresAt,
           attempts: 0,
           verified: false,
-          created_at: new Date().toISOString()
-        }, {
-          onConflict: 'email'
+          created_at: now
         })
 
       if (error) {
