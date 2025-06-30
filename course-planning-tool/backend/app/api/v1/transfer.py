@@ -43,6 +43,9 @@ def normalize_major_name(raw_major: str) -> str:
         # Engineering variations
         "ee": "Electrical Engineering",
         "electrical engineering": "Electrical Engineering",
+        "computer engineering": "Computer Engineering",
+        "comp eng": "Computer Engineering",
+        "cpe": "Computer Engineering",
         "me": "Mechanical Engineering",
         "mechanical engineering": "Mechanical Engineering",
         "ce": "Civil Engineering",
@@ -122,9 +125,11 @@ def normalize_major_name(raw_major: str) -> str:
         return major_mappings[major_lower]
     
     # Check for partial matches (for cases like "Applied Math" -> "Applied Mathematics")
+    # Only do partial matching for longer, more specific terms to avoid false positives
     for key, value in major_mappings.items():
-        if key in major_lower or major_lower in key:
-            return value
+        if len(key) > 3:  # Only check longer keys to avoid short abbreviations causing false matches
+            if key in major_lower:
+                return value
     
     # If no mapping found, return the original with proper capitalization
     return raw_major.title()
