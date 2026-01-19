@@ -562,11 +562,12 @@ https://github.com/pathemata-mathemata
 - **Community College Students** - For the inspiration and feedback
 - **Open Source Community** - For amazing tools and libraries we use
 
-## 📊 Project Stats
+## 📊 Community & Engagement
 
-- **Stars**: [![GitHub stars](https://img.shields.io/github/stars/pathemata-mathemata/Univio.ai?style=flat-square)](https://github.com/pathemata-mathemata/Univio.ai/stargazers)
-- **Forks**: [![GitHub forks](https://img.shields.io/github/forks/pathemata-mathemata/Univio.ai?style=flat-square)](https://github.com/pathemata-mathemata/Univio.ai/network/members)
-- **Issues**: [![GitHub issues](https://img.shields.io/github/issues/pathemata-mathemata/Univio.ai?style=flat-square)](https://github.com/pathemata-mathemata/Univio.ai/issues)
+- **GitHub Repository**: [pathemata-mathemata/Univio.ai](https://github.com/pathemata-mathemata/Univio.ai)
+- **Star us on GitHub**: [⭐ Show your support](https://github.com/pathemata-mathemata/Univio.ai/stargazers)
+- **Report Issues**: [Issues Tracker](https://github.com/pathemata-mathemata/Univio.ai/issues)
+- **Fork & Contribute**: [Fork the project](https://github.com/pathemata-mathemata/Univio.ai/fork)
 
 ## 🗺️ Roadmap
 
