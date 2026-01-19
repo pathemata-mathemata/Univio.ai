@@ -96,8 +96,8 @@ The fastest way to get UniVio running locally:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/CharlesLi/univio.git
-cd univio/course-planning-tool
+git clone https://github.com/pathemata-mathemata/Univio.ai.git
+cd Univio.ai/course-planning-tool
 
 # 2. Run the automated setup script
 chmod +x scripts/setup.sh
@@ -473,7 +473,7 @@ If you encounter issues:
 
 1. Check the [API documentation](http://localhost:8000/docs) when running locally
 2. Review this troubleshooting section
-3. Search existing [GitHub Issues](https://github.com/CharlesLi/univio/issues)
+2. Search existing [GitHub Issues](https://github.com/pathemata-mathemata/Univio.ai/issues)
 4. Create a new issue with detailed error information
 
 ## 🤝 Contributing
@@ -484,7 +484,7 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 
 1. **Fork the Repository**
    ```bash
-   git clone https://github.com/CharlesLi/univio.git
+   git clone https://github.com/pathemata-mathemata/Univio.ai.git
    ```
 
 2. **Create a Feature Branch**
@@ -525,8 +525,8 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 Need help? Here are your options:
 
 - **Documentation**: Check [API docs](http://localhost:8000/docs) when running locally
-- **Issues**: Search or create an issue on [GitHub Issues](https://github.com/CharlesLi/univio/issues)
-- **Discussions**: Use [GitHub Discussions](https://github.com/CharlesLi/univio/discussions) for questions
+- **Issues**: Search or create an issue on [GitHub Issues](https://github.com/pathemata-mathemata/Univio.ai/issues)
+- **Discussions**: Use [GitHub Discussions](https://github.com/pathemata-mathemata/Univio.ai/discussions) for questions
 - **Email**: Reach out to Charles Li for direct support
 
 ## 📄 License
@@ -549,12 +549,12 @@ Under the condition that you:
 ### Creator & Maintainer
 
 **Charles Li**
-- GitHub: [@CharlesLi](https://github.com/CharlesLi)
+- GitHub: [@CharlesLi](https://github.com/pathemata-mathemata)
 - Email: charles@univio.ai
 
 ### Contributors
 
-We thank all contributors who have helped improve UniVio. See the [Contributors](https://github.com/CharlesLi/univio/graphs/contributors) page for a complete list.
+https://github.com/pathemata-mathemata
 
 ### Acknowledgments
 
@@ -564,13 +564,13 @@ We thank all contributors who have helped improve UniVio. See the [Contributors]
 
 ## 📊 Project Stats
 
-- **Stars**: ![GitHub stars](https://img.shields.io/github/stars/CharlesLi/univio?style=flat)
-- **Forks**: ![GitHub forks](https://img.shields.io/github/forks/CharlesLi/univio?style=flat)
-- **Issues**: ![GitHub issues](https://img.shields.io/github/issues/CharlesLi/univio?style=flat)
+- **Stars**: ![GitHub stars](https://img.shields.io/github/stars/pathemata-mathemata/Univio.ai?style=flat)
+- **Forks**: ![GitHub forks](https://img.shields.io/github/forks/pathemata-mathemata/Univio.ai?style=flat)
+- **Issues**: ![GitHub issues](https://img.shields.io/github/issues/pathemata-mathemata/Univio.ai?style=flat)
 
 ## 🗺️ Roadmap
 
-Check out our [GitHub Projects](https://github.com/users/CharlesLi/projects) to see what's planned for future releases.
+Check out our [GitHub Projects](https://github.com/pathemata-mathemata/Univio.ai/projects) to see what's planned for future releases.
 
 ---
 
