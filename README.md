@@ -1,5 +1,6 @@
 # UniVio - AI-Powered Course Planning Tool
 
+[![Website: univio.ai](https://img.shields.io/badge/Website-univio.ai-blue.svg)](https://univio.ai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Node.js 18+](https://img.shields.io/badge/node.js-18+-green.svg)](https://nodejs.org/)
@@ -80,9 +81,15 @@ ASSIST.org → Selenium Scraper → Data Parser → API → Frontend → Student
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### 🌐 Try the Live Version
 
-Before you begin, ensure you have the following installed:
+**Want to start immediately?** Visit **[univio.ai](https://univio.ai)** to begin your transfer planning journey right now!
+
+No installation or setup needed - just open and start planning your course path.
+
+### Prerequisites (For Local Development)
+
+If you want to run UniVio locally for development, ensure you have the following installed:
 
 - **Node.js** 18.0 or higher ([download](https://nodejs.org/))
 - **Python** 3.12 or higher ([download](https://www.python.org/downloads/))
@@ -90,9 +97,9 @@ Before you begin, ensure you have the following installed:
 - **Chrome/Chromium** browser (required for web scraping)
 - **Git** for version control
 
-### Quick Start
+### Local Development Setup
 
-The fastest way to get UniVio running locally:
+To run UniVio on your local machine for development:
 
 ```bash
 # 1. Clone the repository
@@ -107,10 +114,11 @@ chmod +x scripts/setup.sh
 ./scripts/dev.sh
 ```
 
-The application will be available at:
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
+Once running, the application will be available at:
+- **Live Version**: https://univio.ai (Production - use this to try immediately!)
+- **Local Frontend**: http://localhost:3000 (Your local development instance)
+- **Local Backend API**: http://localhost:8000 (Local API server)
+- **API Docs**: http://localhost:8000/docs (Interactive API documentation)
 
 ### Manual Setup
 
@@ -171,9 +179,19 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 ## 📱 Usage
 
-### Accessing the Application
+### Accessing UniVio
 
-Once running locally, navigate to http://localhost:3000 and follow these steps:
+**Option 1: Live Version (Recommended for Most Users)**
+- Visit [univio.ai](https://univio.ai) to use the live application
+- Start planning your transfer immediately - no installation required!
+
+**Option 2: Local Development**
+- Follow the Local Development Setup above
+- Navigate to http://localhost:3000
+
+### Planning Your Transfer
+
+Follow these steps:
 
 1. **Create or Log In** to your account
 2. **Fill Out Transfer Planning Form**
