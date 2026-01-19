@@ -564,9 +564,9 @@ https://github.com/pathemata-mathemata
 
 ## 📊 Project Stats
 
-- **Stars**: ![GitHub stars](https://img.shields.io/github/stars/pathemata-mathemata/Univio.ai?style=flat)
-- **Forks**: ![GitHub forks](https://img.shields.io/github/forks/pathemata-mathemata/Univio.ai?style=flat)
-- **Issues**: ![GitHub issues](https://img.shields.io/github/issues/pathemata-mathemata/Univio.ai?style=flat)
+- **Stars**: [![GitHub stars](https://img.shields.io/github/stars/pathemata-mathemata/Univio.ai?style=flat-square)](https://github.com/pathemata-mathemata/Univio.ai/stargazers)
+- **Forks**: [![GitHub forks](https://img.shields.io/github/forks/pathemata-mathemata/Univio.ai?style=flat-square)](https://github.com/pathemata-mathemata/Univio.ai/network/members)
+- **Issues**: [![GitHub issues](https://img.shields.io/github/issues/pathemata-mathemata/Univio.ai?style=flat-square)](https://github.com/pathemata-mathemata/Univio.ai/issues)
 
 ## 🗺️ Roadmap
 
